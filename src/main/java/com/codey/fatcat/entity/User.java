@@ -1,4 +1,4 @@
-package com.codey.fatcat.model;
+package com.codey.fatcat.entity;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;

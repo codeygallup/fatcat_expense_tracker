@@ -1,4 +1,4 @@
-package com.codey.fatcat.model;
+package com.codey.fatcat.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -10,32 +10,22 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
-import java.time.LocalDate;
 
 @Getter
 @Setter
 @ToString
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
 @Entity
-public class Transaction extends BaseEntity {
+public class Account extends BaseEntity {
 
   @ManyToOne
   @JoinColumn(name = "user_id", nullable = false)
   private User user;
 
-  @Column(nullable = false)
-  private LocalDate date;
+  @Column(name = "account_type")
+  private String accountType;
 
   @Column(nullable = false)
-  private double amount;
-
-  @Column(nullable = false)
-  private String merchant;
-
-  @Column(nullable = false)
-  private String category;
-
-  @Column(nullable = false, name = "is_reimbursable")
-  private boolean isReimbursable;
+  private double balance;
 }
