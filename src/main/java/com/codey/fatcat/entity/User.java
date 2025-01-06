@@ -19,6 +19,7 @@ import java.util.Set;
 @Setter
 @ToString
 @AllArgsConstructor
+//@RequiredArgsConstructor
 @NoArgsConstructor
 @Entity
 public class User extends BaseEntity {

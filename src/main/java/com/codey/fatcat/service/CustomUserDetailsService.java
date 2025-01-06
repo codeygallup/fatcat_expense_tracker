@@ -1,5 +1,6 @@
 package com.codey.fatcat.service;
 
+import com.codey.fatcat.entity.User;
 import com.codey.fatcat.repository.UserRepository;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -15,16 +16,21 @@ public class CustomUserDetailsService implements UserDetailsService {
     this.userRepository = userRepository;
   }
 
+
   @Override
-  public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-    com.codey.fatcat.entity.User user = userRepository.findByUsername(username)
-        .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
+  public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+    System.out.println("EMAIL: " + email);
+    User user = userRepository.findByEmail(email)
+        .orElseThrow(() -> new UsernameNotFoundException("User not found: " + email));
+    System.out.println("USER: " + user);
+
+    String authority = "ROLE_" + user.getRole();
+    System.out.println("Authority: " + authority);
 
     return org.springframework.security.core.userdetails.User.builder()
-        .username(user.getName())
+        .username(user.getEmail())
         .password(user.getPassword())
-        .authorities(
-            String.valueOf(user.getRole()))
+        .authorities(authority)
         .build();
 
   }
