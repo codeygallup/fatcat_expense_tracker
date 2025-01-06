@@ -2,6 +2,8 @@ package com.codey.fatcat.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import lombok.AllArgsConstructor;
@@ -24,6 +26,10 @@ public class Transaction extends BaseEntity {
   @JoinColumn(name = "user_id", nullable = false)
   private User user;
 
+  @ManyToOne
+  @JoinColumn(name = "account_id", nullable = false)
+  private Account account;
+
   @Column(nullable = false)
   private LocalDate date;
 
@@ -33,9 +39,23 @@ public class Transaction extends BaseEntity {
   @Column(nullable = false)
   private String merchant;
 
+  @Enumerated(EnumType.STRING)
   @Column(nullable = false)
-  private String category;
+  private TransactionCategory category;
 
   @Column(nullable = false, name = "is_reimbursable")
   private boolean isReimbursable;
+
+  @Column(nullable = false)
+  private String transactionType;
+}
+
+enum TransactionCategory {
+  GROCERIES,
+  DINING_OUT,
+  HOUSING,
+  TRANSPORTATION,
+  BILLS_AND_SUBSCRIPTIONS,
+  ENTERTAINMENT,
+  MISCELLANEOUS
 }
