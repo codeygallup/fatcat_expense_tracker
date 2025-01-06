@@ -11,7 +11,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.util.List;
 import java.util.Set;
@@ -42,11 +41,6 @@ public class User extends BaseEntity {
   @Enumerated(EnumType.STRING)
   @Column(nullable = false)
   private Role role;
-
-  public void setPassword(String password) {
-    BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
-    this.password = encoder.encode(password);
-  }
 }
 
 enum Role {
