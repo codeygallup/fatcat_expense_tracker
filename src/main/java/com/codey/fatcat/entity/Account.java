@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 
@@ -34,5 +35,5 @@ public class Account extends BaseEntity {
   private String accountType;
 
   @Column(nullable = false)
-  private double balance;
+  private BigDecimal balance;
 }
