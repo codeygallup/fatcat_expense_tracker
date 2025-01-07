@@ -41,8 +41,10 @@ public class SecurityConfig {
                                    .anyRequest().authenticated()
         )
         .formLogin(AbstractAuthenticationFilterConfigurer::permitAll)
-
-
+        .logout(logout -> logout
+            .logoutUrl("/logout")
+            .logoutSuccessUrl("/home")
+            .invalidateHttpSession(true))
         .httpBasic(Customizer.withDefaults())
         .build();
   }
