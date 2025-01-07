@@ -23,4 +23,9 @@ public class UserService {
     userRepository.save(user);
   }
 
+  public void loginUser(User user) {
+    System.out.println("Logging in");
+
+  }
+
 }
