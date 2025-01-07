@@ -4,9 +4,12 @@ import com.codey.fatcat.service.CustomUserDetailsService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractAuthenticationFilterConfigurer;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -30,13 +33,48 @@ public class SecurityConfig {
   @Bean
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
     return http
-//        .userDetailsService(customUserDetailsService)
-        .authorizeHttpRequests((authorize) -> authorize
-            .requestMatchers(HttpMethod.POST, "/users/register").permitAll()
-            .anyRequest().authenticated()
-        )
         .csrf(AbstractHttpConfigurer::disable)
+        .authorizeHttpRequests((authorize) -> authorize
+                                   .requestMatchers(HttpMethod.POST, "/users/register").permitAll()
+                                   .requestMatchers(HttpMethod.POST, "/users/login").permitAll()
+//            .requestMatchers("/api/users/register", "/api/users/login").permitAll()
+                                   .anyRequest().authenticated()
+        )
+        .formLogin(AbstractAuthenticationFilterConfigurer::permitAll)
+
+
         .httpBasic(Customizer.withDefaults())
         .build();
   }
+
+  @Bean
+  public AuthenticationProvider authenticationProvider() {
+    DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+    provider.setUserDetailsService(customUserDetailsService);
+    provider.setPasswordEncoder(passwordEncoder());
+    return provider;
+  }
 }
+
+/*
+http
+.csrf().disable()
+.authorizeHttpRequests(auth -> auth
+.requestMatchesrs("/api/users/register").permitAll()
+.requestMatchers("/api/users/login").permitAll()
+.anyRequest().authenticated()
+)
+.userDetailsService(customUserDetailsService)
+.formLogin()
+.loginProcessingUrl("/api/users/login")
+.successHandler((request, response, authentication) -> {
+response.setContentType("application/json");
+response.getWriter().write("{\"message\": \"Login successful\"}");
+})
+.failureHandler((request, response, exception) -> {
+response.setContentType("application/json");
+response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+response.getWriter().write("{\"error\": \"Invalid credientials\"}");
+});
+return http.build();
+* */
