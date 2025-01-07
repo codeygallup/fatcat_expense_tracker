@@ -1,9 +1,8 @@
 package com.codey.fatcat.controller;
 
 import com.codey.fatcat.entity.User;
-import com.codey.fatcat.repository.UserRepository;
+import com.codey.fatcat.service.UserService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -13,18 +12,15 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/users")
 public class UserController {
 
-  private final UserRepository userRepository;
-  private final PasswordEncoder passwordEncoder;
+  private final UserService userService;
 
-  public UserController(UserRepository userRepository, PasswordEncoder passwordEncoder) {
-    this.userRepository = userRepository;
-    this.passwordEncoder = passwordEncoder;
+  public UserController(UserService userService) {
+    this.userService = userService;
   }
 
   @PostMapping("/register")
   public ResponseEntity<String> registerUser(@RequestBody User user) {
-    user.setPassword(passwordEncoder.encode(user.getPassword()));
-    userRepository.save(user);
+    userService.registerUser(user);
     return ResponseEntity.ok("User registered successfully");
   }
 }
