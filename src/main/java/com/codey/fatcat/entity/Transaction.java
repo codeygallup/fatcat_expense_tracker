@@ -1,5 +1,6 @@
 package com.codey.fatcat.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -26,6 +27,7 @@ import java.time.LocalDate;
 public class Transaction extends BaseEntity {
 
   @ManyToOne
+  @JsonBackReference
   @JoinColumn(name = "account_id", nullable = false)
   private Account account;
 
