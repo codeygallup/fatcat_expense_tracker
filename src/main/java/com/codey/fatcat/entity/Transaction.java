@@ -26,10 +26,6 @@ import java.time.LocalDate;
 public class Transaction extends BaseEntity {
 
   @ManyToOne
-  @JoinColumn(name = "user_id", nullable = false)
-  private User user;
-
-  @ManyToOne
   @JoinColumn(name = "account_id", nullable = false)
   private Account account;
 
