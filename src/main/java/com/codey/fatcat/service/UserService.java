@@ -6,6 +6,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.UUID;
+
 @Service
 public class UserService {
 
@@ -28,4 +31,23 @@ public class UserService {
 
   }
 
+  public List<User> getAllUsers() {
+    return userRepository.findAll();
+  }
+
+  public User getUserById(UUID id) {
+    return userRepository.findById(id).orElse(null);
+  }
+
+  public boolean deleteUser(String id) {
+    System.out.println("SERVICEID: " + id);
+    UUID userId = UUID.fromString(id);
+    System.out.println(userId);
+//User user = userRepository.findById(id).orElseThrow(() -> new RuntimeException("User not found"));
+//    if (userRepository.existsById(id)) {
+//      userRepository.deleteById(id);
+//      return true;
+//    }
+    return false;
+  }
 }
