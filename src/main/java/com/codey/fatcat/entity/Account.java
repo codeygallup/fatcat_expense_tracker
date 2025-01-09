@@ -1,5 +1,7 @@
 package com.codey.fatcat.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -27,10 +29,12 @@ import java.util.List;
 public class Account extends BaseEntity {
 
   @ManyToOne
+  @JsonBackReference
   @JoinColumn(name = "user_id", nullable = false)
   private User user;
 
-  @OneToMany(mappedBy = "account", cascade = CascadeType.ALL)
+  @JsonManagedReference
+  @OneToMany(mappedBy = "account", cascade = CascadeType.REMOVE, orphanRemoval = true)
   private List<Transaction> transactions;
 
   @Column(name = "account_type")
