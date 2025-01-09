@@ -42,7 +42,7 @@ public class TransactionController {
   }
 
   @DeleteMapping("/{id}")
-  public ResponseEntity<String> deleteTransaction(@RequestBody UUID id) {
+  public ResponseEntity<String> deleteTransaction(@PathVariable UUID id) {
     return transactionService.deleteTransaction(id) ? ResponseEntity.ok("Transaction deleted successfully") :
         ResponseEntity.notFound().build();
   }
