@@ -43,6 +43,17 @@ public class TransactionService {
     return transactionRepository.save(newTransaction);
   }
 
+  public Transaction updateTransaction(UUID id, TransactionDTO transaction) {
+    Transaction transactionToUpdate = getTransactionById(id);
+    transactionToUpdate.setDate(transaction.getDate());
+    transactionToUpdate.setAmount(transaction.getAmount());
+    transactionToUpdate.setMerchant(transaction.getMerchant());
+    transactionToUpdate.setCategory(transaction.getCategory());
+    transactionToUpdate.setReimbursable(transaction.isReimbursable());
+    transactionToUpdate.setTransactionType(transaction.getTransactionType());
+    return transactionRepository.save(transactionToUpdate);
+  }
+
   public boolean deleteTransaction(UUID id) {
     if (transactionRepository.existsById(id)) {
       transactionRepository.deleteById(id);

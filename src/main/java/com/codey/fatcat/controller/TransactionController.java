@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -39,6 +40,11 @@ public class TransactionController {
   @PostMapping
   public ResponseEntity<Transaction> createTransaction(@RequestBody TransactionDTO transaction) {
     return new ResponseEntity<>(transactionService.createTransaction(transaction), HttpStatus.CREATED);
+  }
+
+  @PutMapping("/{id}")
+  public ResponseEntity<Transaction> updateTransaction(@PathVariable UUID id, @RequestBody TransactionDTO transaction) {
+    return new ResponseEntity<>(transactionService.updateTransaction(id, transaction), HttpStatus.ACCEPTED);
   }
 
   @DeleteMapping("/{id}")

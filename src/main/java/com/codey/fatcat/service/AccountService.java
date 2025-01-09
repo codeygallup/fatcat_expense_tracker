@@ -33,12 +33,19 @@ public class AccountService {
   public Account createAccount(AccountDTO account) {
     User user = userRepository.findById(account.getUserId())
         .orElseThrow(() -> new RuntimeException("User not found"));
-//    UUID userId = user.getId();
     Account newAccount = new Account();
     newAccount.setAccountType(account.getAccountType());
     newAccount.setBalance(account.getBalance());
     newAccount.setUser(user);
     return accountRepository.save(newAccount);
+  }
+
+  public Account updateAccount(UUID id, AccountDTO account) {
+    Account oldAccount = getAccountById(id);
+    oldAccount.setAccountType(account.getAccountType());
+    oldAccount.setBalance(account.getBalance());
+    oldAccount.setUser(oldAccount.getUser());
+    return accountRepository.save(oldAccount);
   }
 
   @Transactional
