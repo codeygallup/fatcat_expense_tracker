@@ -47,16 +47,7 @@ public class Transaction extends BaseEntity {
   @Column(nullable = false, name = "is_reimbursable")
   private boolean isReimbursable;
 
-  @Column(nullable = false)
+  @Column(nullable = false, name = "transaction_type")
   private String transactionType;
 }
 
-enum TransactionCategory {
-  GROCERIES,
-  DINING_OUT,
-  HOUSING,
-  TRANSPORTATION,
-  BILLS_AND_SUBSCRIPTIONS,
-  ENTERTAINMENT,
-  MISCELLANEOUS
-}
