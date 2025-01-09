@@ -22,7 +22,6 @@ public class JwtService {
   private static final long VALIDITY = TimeUnit.MINUTES.toMillis(1000);
 
   public String generateToken(UserDetails userDetails) {
-    System.out.println("USERDETAILSJWT: " + userDetails);
     Map<String, String> claims = new HashMap<>();
     claims.put("username", userDetails.getUsername());
     return Jwts.builder()
@@ -40,13 +39,11 @@ public class JwtService {
   }
 
   public String extractUsername(String jwt) {
-    System.out.println("JWT: " + jwt);
     Claims claims = getClaims(jwt);
     return claims.getSubject();
   }
 
   private Claims getClaims(String jwt) {
-    System.out.println("CLAIMS: " + jwt);
     return Jwts.parser()
         .verifyWith(generateKey())
         .build()
@@ -55,7 +52,6 @@ public class JwtService {
   }
 
   public boolean isTokenValid(String jwt) {
-    System.out.println("VALIDTOKEN: " + jwt);
     Claims claims = getClaims(jwt);
     return claims.getExpiration().after(Date.from(Instant.now()));
   }
