@@ -39,15 +39,11 @@ public class UserService {
     return userRepository.findById(id).orElse(null);
   }
 
-  public boolean deleteUser(String id) {
-    System.out.println("SERVICEID: " + id);
-    UUID userId = UUID.fromString(id);
-    System.out.println(userId);
-//User user = userRepository.findById(id).orElseThrow(() -> new RuntimeException("User not found"));
-//    if (userRepository.existsById(id)) {
-//      userRepository.deleteById(id);
-//      return true;
-//    }
+  public boolean deleteUser(UUID id) {
+    if (userRepository.existsById(id)) {
+      userRepository.deleteById(id);
+      return true;
+    }
     return false;
   }
 }

@@ -59,13 +59,7 @@ public class UserController {
 
   @DeleteMapping("/{id}")
   public ResponseEntity<String> deleteUser(@PathVariable UUID id) {
-    System.out.println("CONTROLLERID" + id.getClass());
-//    UUID uuidId = UUID.fromString
-//    System.out.println("CONTROLLERUUID: " + uuidId);
-////    System.out.println("CONTROLLERID CLASS: " + uuidId.getClass());
-//    userService.deleteUser(id);
-    return null;
-//    return userService.deleteUser(id) ? ResponseEntity.ok("User deleted successfully") :
-//        ResponseEntity.notFound().build();
+    return userService.deleteUser(id) ? ResponseEntity.ok("User deleted successfully") :
+        ResponseEntity.notFound().build();
   }
 }
