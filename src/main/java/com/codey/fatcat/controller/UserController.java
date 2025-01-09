@@ -43,17 +43,15 @@ public class UserController {
 //    return ResponseEntity.ok(userService.getAllUsers());
     List<User> users = userService.getAllUsers();
     List<UserDTO> userDTOs = users.stream()
-        .map(user -> new UserDTO(user.getId(), user.getName(), user.getEmail()))
+        .map(user -> new UserDTO(user.getId(), user.getName(), user.getEmail(), user.getAccounts()))
         .toList();
     return ResponseEntity.ok(userDTOs);
   }
 
   @GetMapping("/{id}")
   public ResponseEntity<UserDTO> getUserById(@PathVariable UUID id) {
-    System.out.println("CONTROLLERID: " + id);
     User user = userService.getUserById(id);
-    System.out.println("CONTROLLERUSER: " + user);
-    return ResponseEntity.ok(new UserDTO(user.getId(), user.getName(), user.getEmail()));
+    return ResponseEntity.ok(new UserDTO(user.getId(), user.getName(), user.getEmail(), user.getAccounts()));
   }
 
 
