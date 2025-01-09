@@ -39,6 +39,14 @@ public class UserService {
     return userRepository.findById(id).orElse(null);
   }
 
+  public User updateUser(UUID id, User user) {
+    User userToUpdate = userRepository.findById(id).orElse(null);
+    userToUpdate.setName(user.getName());
+    userToUpdate.setEmail(user.getEmail());
+    userToUpdate.setPassword(passwordEncoder.encode(user.getPassword()));
+    return userRepository.save(userToUpdate);
+  }
+
   public boolean deleteUser(UUID id) {
     if (userRepository.existsById(id)) {
       userRepository.deleteById(id);
