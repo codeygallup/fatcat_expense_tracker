@@ -1,5 +1,7 @@
 package com.codey.fatcat.entity;
 
+import com.codey.fatcat.enums.TransactionCategory;
+import com.codey.fatcat.enums.TransactionType;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -47,7 +49,8 @@ public class Transaction extends BaseEntity {
   @Column(nullable = false, name = "is_reimbursable")
   private boolean isReimbursable;
 
+  @Enumerated(EnumType.STRING)
   @Column(nullable = false, name = "transaction_type")
-  private String transactionType;
+  private TransactionType transactionType;
 }
 

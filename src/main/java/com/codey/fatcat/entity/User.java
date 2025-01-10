@@ -1,5 +1,6 @@
 package com.codey.fatcat.entity;
 
+import com.codey.fatcat.enums.Role;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -79,6 +80,3 @@ public class User extends BaseEntity implements UserDetails {
   }
 }
 
-enum Role {
-  USER, ADMIN
-}

@@ -1,4 +1,4 @@
-package com.codey.fatcat.entity;
+package com.codey.fatcat.enums;
 
 public enum TransactionCategory {
   GROCERIES,

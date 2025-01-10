@@ -1,6 +1,7 @@
 package com.codey.fatcat.dto;
 
-import com.codey.fatcat.entity.TransactionCategory;
+import com.codey.fatcat.enums.TransactionCategory;
+import com.codey.fatcat.enums.TransactionType;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -20,7 +21,7 @@ public class TransactionDTO {
   private String merchant;
   private TransactionCategory category;
   private boolean isReimbursable;
-  private String transactionType;
+  private TransactionType transactionType;
   private UUID accountId;
 
 }
