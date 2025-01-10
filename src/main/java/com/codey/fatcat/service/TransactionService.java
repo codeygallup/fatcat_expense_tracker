@@ -3,10 +3,12 @@ package com.codey.fatcat.service;
 import com.codey.fatcat.dto.TransactionDTO;
 import com.codey.fatcat.entity.Account;
 import com.codey.fatcat.entity.Transaction;
+import com.codey.fatcat.enums.TransactionType;
 import com.codey.fatcat.repository.AccountRepository;
 import com.codey.fatcat.repository.TransactionRepository;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
@@ -40,6 +42,15 @@ public class TransactionService {
     newTransaction.setReimbursable(transaction.isReimbursable());
     newTransaction.setTransactionType(transaction.getTransactionType());
     newTransaction.setAccount(account);
+
+    BigDecimal currentBalance = account.getBalance();
+    BigDecimal newBalance =
+        transaction.getTransactionType() == TransactionType.CREDIT ? currentBalance.add(transaction.getAmount()) :
+            currentBalance.subtract(transaction.getAmount());
+
+    account.setBalance(newBalance);
+    accountRepository.save(account);
+
     return transactionRepository.save(newTransaction);
   }
 
