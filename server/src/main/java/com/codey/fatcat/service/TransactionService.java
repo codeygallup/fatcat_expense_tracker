@@ -4,6 +4,7 @@ import com.codey.fatcat.dto.TransactionDTO;
 import com.codey.fatcat.entity.Account;
 import com.codey.fatcat.entity.Transaction;
 import com.codey.fatcat.enums.TransactionType;
+import com.codey.fatcat.exception.ResourceNotFoundException;
 import com.codey.fatcat.repository.AccountRepository;
 import com.codey.fatcat.repository.TransactionRepository;
 import org.springframework.stereotype.Service;
@@ -28,12 +29,13 @@ public class TransactionService {
   }
 
   public Transaction getTransactionById(UUID id) {
-    return transactionRepository.findById(id).orElse(null);
+    return transactionRepository.findById(id)
+        .orElseThrow(() -> new ResourceNotFoundException("Transaction with id: " + id + " not found"));
   }
 
   public Transaction createTransaction(TransactionDTO transaction) {
     Account account = accountRepository.findById(transaction.getAccountId())
-        .orElseThrow(() -> new RuntimeException("Account not found"));
+        .orElseThrow(() -> new ResourceNotFoundException("Account with id " + transaction.getAccountId() + " not found"));
     Transaction newTransaction = new Transaction();
     newTransaction.setDate(transaction.getDate());
     newTransaction.setAmount(transaction.getAmount());
@@ -72,16 +74,4 @@ public class TransactionService {
     }
     return false;
   }
-//  public void addTransaction(Transaction transaction) {
-//    Account account = transaction.getAccount();
-//
-//    if ("credit".equalsIgnoreCase(transaction.getTransactionType())) {
-//      account.setBalance(account.getBalance() + transaction.getAmount());
-//    } else if ("debit".equalsIgnoreCase(transaction.getTransactionType())) {
-//      account.setBalance(account.getBalance() - transaction.getAmount());
-//    }
-//
-//    accountRepository.save(account);
-//    transactionRepository.save(transaction);
-//  }
 }

@@ -3,6 +3,7 @@ package com.codey.fatcat.service;
 import com.codey.fatcat.dto.AccountDTO;
 import com.codey.fatcat.entity.Account;
 import com.codey.fatcat.entity.User;
+import com.codey.fatcat.exception.ResourceNotFoundException;
 import com.codey.fatcat.repository.AccountRepository;
 import com.codey.fatcat.repository.UserRepository;
 import jakarta.transaction.Transactional;
@@ -27,12 +28,13 @@ public class AccountService {
   }
 
   public Account getAccountById(UUID id) {
-    return accountRepository.findById(id).orElse(null);
+    return accountRepository.findById(id)
+        .orElseThrow(() -> new ResourceNotFoundException("Account with id: " + id + " not found"));
   }
 
   public Account createAccount(AccountDTO account) {
     User user = userRepository.findById(account.getUserId())
-        .orElseThrow(() -> new RuntimeException("User not found"));
+        .orElseThrow(() -> new ResourceNotFoundException("User with id: " + account.getUserId() + " not found"));
     Account newAccount = new Account();
     newAccount.setAccountType(account.getAccountType());
     newAccount.setBalance(account.getBalance());
@@ -51,7 +53,8 @@ public class AccountService {
   @Transactional
   public boolean deleteAccount(UUID id) {
     if (accountRepository.existsById(id)) {
-      Account account = accountRepository.findById(id).orElse(null);
+      Account account = accountRepository.findById(id)
+          .orElseThrow(() -> new ResourceNotFoundException("Account with id: " + id + " not found"));
       if (account != null) {
         account.getUser().getAccounts().remove(account);
         accountRepository.deleteById(id);

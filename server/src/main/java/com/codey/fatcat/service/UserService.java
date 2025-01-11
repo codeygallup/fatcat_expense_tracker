@@ -1,6 +1,7 @@
 package com.codey.fatcat.service;
 
 import com.codey.fatcat.entity.User;
+import com.codey.fatcat.exception.ResourceNotFoundException;
 import com.codey.fatcat.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -36,11 +37,13 @@ public class UserService {
   }
 
   public User getUserById(UUID id) {
-    return userRepository.findById(id).orElse(null);
+    return userRepository.findById(id)
+        .orElseThrow(() -> new ResourceNotFoundException("User with id: " + id + " not found"));
   }
 
   public User updateUser(UUID id, User user) {
-    User userToUpdate = userRepository.findById(id).orElse(null);
+    User userToUpdate = userRepository.findById(id)
+        .orElseThrow(() -> new ResourceNotFoundException("User with id: " + id + " not found"));
     userToUpdate.setName(user.getName());
     userToUpdate.setEmail(user.getEmail());
     userToUpdate.setPassword(passwordEncoder.encode(user.getPassword()));
