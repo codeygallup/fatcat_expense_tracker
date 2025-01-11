@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 public class CustomRestExceptionHandler {
 
   @ExceptionHandler
-  public ResponseEntity<CustomErrorResponse> handleException(NotFoundException exc) {
+  public ResponseEntity<CustomErrorResponse> handleException(ResourceNotFoundException exc) {
     CustomErrorResponse errorResponse = new CustomErrorResponse();
 
     errorResponse.setStatus(HttpStatus.NOT_FOUND.value());
