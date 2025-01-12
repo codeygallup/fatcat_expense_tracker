@@ -43,6 +43,7 @@ public class SecurityConfig {
                                    .requestMatchers(HttpMethod.POST, "/users/register").permitAll()
                                    .requestMatchers(HttpMethod.POST, "/users/login").permitAll()
                                    .requestMatchers(HttpMethod.POST, "/authenticate").permitAll()
+//                                   .requestMatchers(HttpMethod.PATCH, "/users/*/role").hasRole("ADMIN")
                                    .requestMatchers("/accounts/**").permitAll()
                                    .requestMatchers("/transactions/**").permitAll()
 //            .requestMatchers("/api/users/register", "/api/users/login").permitAll()

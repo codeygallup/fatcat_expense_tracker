@@ -2,6 +2,7 @@ package com.codey.fatcat.controller;
 
 import com.codey.fatcat.dto.UserDTO;
 import com.codey.fatcat.entity.User;
+import com.codey.fatcat.enums.Role;
 import com.codey.fatcat.service.CustomUserDetailsService;
 import com.codey.fatcat.service.UserService;
 import com.codey.fatcat.webtoken.JwtService;
@@ -13,6 +14,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -61,13 +63,13 @@ public class UserController {
   }
 
   @GetMapping
-  public ResponseEntity<List<UserDTO>> getAllUsers() {
-//    return ResponseEntity.ok(userService.getAllUsers());
-    List<User> users = userService.getAllUsers();
-    List<UserDTO> userDTOs = users.stream()
-        .map(user -> new UserDTO(user.getId(), user.getName(), user.getEmail(), user.getAccounts()))
-        .toList();
-    return ResponseEntity.ok(userDTOs);
+  public ResponseEntity<List<User>> getAllUsers() {
+    return ResponseEntity.ok(userService.getAllUsers());
+//    List<User> users = userService.getAllUsers();
+//    List<UserDTO> userDTOs = users.stream()
+//        .map(user -> new UserDTO(user.getId(), user.getName(), user.getEmail(), user.getAccounts()))
+//        .toList();
+//    return ResponseEntity.ok(userDTOs);
   }
 
   @GetMapping("/{id}")
@@ -79,6 +81,13 @@ public class UserController {
   @PutMapping("/{id}")
   public ResponseEntity<User> updateUser(@PathVariable UUID id, @RequestBody User user) {
     return new ResponseEntity<>(userService.updateUser(id, user), HttpStatus.ACCEPTED);
+  }
+
+  @PatchMapping("/{id}/role")
+  public ResponseEntity<User> updateUserRole(@PathVariable UUID id, @RequestBody Role role) {
+    User updatedUser = userService.updateUserRole(id, role);
+    return new ResponseEntity<>(updatedUser, HttpStatus.ACCEPTED);
+
   }
 
   @DeleteMapping("/{id}")
