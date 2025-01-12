@@ -1,6 +1,7 @@
 package com.codey.fatcat.service;
 
 import com.codey.fatcat.entity.User;
+import com.codey.fatcat.enums.Role;
 import com.codey.fatcat.exception.ResourceNotFoundException;
 import com.codey.fatcat.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,6 +48,17 @@ public class UserService {
     userToUpdate.setName(user.getName());
     userToUpdate.setEmail(user.getEmail());
     userToUpdate.setPassword(passwordEncoder.encode(user.getPassword()));
+    return userRepository.save(userToUpdate);
+  }
+
+  public User updateUserRole(UUID id, Role newRole) {
+//    if (!SecurityUtils.hasRole("ADMIN")) {
+//      throw new AccessDeniedException("Only admins can update user roles");
+//    }
+    User userToUpdate = userRepository.findById(id)
+        .orElseThrow(() -> new ResourceNotFoundException("User with id: " + id + " not found"));
+
+    userToUpdate.setRole(newRole);
     return userRepository.save(userToUpdate);
   }
 
