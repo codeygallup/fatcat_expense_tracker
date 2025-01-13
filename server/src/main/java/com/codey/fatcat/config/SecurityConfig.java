@@ -1,7 +1,7 @@
 package com.codey.fatcat.config;
 
-import com.codey.fatcat.JwtAuthenticationFilter;
 import com.codey.fatcat.service.CustomUserDetailsService;
+import com.codey.fatcat.webtoken.jwt.JwtAuthenticationFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
