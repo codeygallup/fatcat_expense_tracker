@@ -28,7 +28,7 @@ public class SecurityUtils {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     return authentication != null && authentication.getAuthorities()
         .stream()
-        .anyMatch(g -> g.getAuthority().equals("ROLE_ " + role));
+        .anyMatch(g -> g.getAuthority().equals("ROLE_" + role));
   }
 
   public static void validateUserAccess(UUID userId, UserRepository userRepository) {
