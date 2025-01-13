@@ -4,8 +4,10 @@ import com.codey.fatcat.dto.AccountDTO;
 import com.codey.fatcat.entity.Account;
 import com.codey.fatcat.entity.User;
 import com.codey.fatcat.exception.ResourceNotFoundException;
+import com.codey.fatcat.exception.UnauthorizedException;
 import com.codey.fatcat.repository.AccountRepository;
 import com.codey.fatcat.repository.UserRepository;
+import com.codey.fatcat.utils.SecurityUtils;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
@@ -24,15 +26,23 @@ public class AccountService {
   }
 
   public List<Account> getAllAccounts() {
-    return accountRepository.findAll();
+    String currentUserEmail = SecurityUtils.getCurrentUserEmail();
+    if (SecurityUtils.hasRole("ADMIN")) {
+      return accountRepository.findAll();
+    }
+    User currentUser =
+        userRepository.findByEmail(currentUserEmail).orElseThrow(() -> new UnauthorizedException("User not found"));
+    return accountRepository.findAllByUserId(currentUser.getId());
   }
 
   public Account getAccountById(UUID id) {
+    SecurityUtils.validateAccountAccess(id, accountRepository);
     return accountRepository.findById(id)
         .orElseThrow(() -> new ResourceNotFoundException("Account with id: " + id + " not found"));
   }
 
   public Account createAccount(AccountDTO account) {
+    SecurityUtils.validateUserAccess(account.getUserId(), userRepository);
     User user = userRepository.findById(account.getUserId())
         .orElseThrow(() -> new ResourceNotFoundException("User with id: " + account.getUserId() + " not found"));
     Account newAccount = new Account();
@@ -43,6 +53,7 @@ public class AccountService {
   }
 
   public Account updateAccount(UUID id, AccountDTO account) {
+    SecurityUtils.validateAccountAccess(id, accountRepository);
     Account oldAccount = getAccountById(id);
     oldAccount.setAccountType(account.getAccountType());
     oldAccount.setBalance(account.getBalance());
@@ -52,6 +63,7 @@ public class AccountService {
 
   @Transactional
   public boolean deleteAccount(UUID id) {
+    SecurityUtils.validateAccountAccess(id, accountRepository);
     if (accountRepository.existsById(id)) {
       Account account = accountRepository.findById(id)
           .orElseThrow(() -> new ResourceNotFoundException("Account with id: " + id + " not found"));

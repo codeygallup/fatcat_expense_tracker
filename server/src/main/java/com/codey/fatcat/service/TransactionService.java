@@ -7,6 +7,7 @@ import com.codey.fatcat.enums.TransactionType;
 import com.codey.fatcat.exception.ResourceNotFoundException;
 import com.codey.fatcat.repository.AccountRepository;
 import com.codey.fatcat.repository.TransactionRepository;
+import com.codey.fatcat.utils.SecurityUtils;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -25,15 +26,22 @@ public class TransactionService {
   }
 
   public List<Transaction> getAllTransactions() {
-    return transactionRepository.findAll();
+    String currentUserEmail = SecurityUtils.getCurrentUserEmail();
+    if (SecurityUtils.hasRole("ADMIN")) {
+      return transactionRepository.findAll();
+    }
+    return transactionRepository.findAllByAccount_User_Email(currentUserEmail);
   }
 
   public Transaction getTransactionById(UUID id) {
-    return transactionRepository.findById(id)
+    Transaction transaction = transactionRepository.findById(id)
         .orElseThrow(() -> new ResourceNotFoundException("Transaction with id: " + id + " not found"));
+    SecurityUtils.validateAccountAccess(transaction.getAccount().getId(), accountRepository);
+    return transaction;
   }
 
   public Transaction createTransaction(TransactionDTO transaction) {
+    SecurityUtils.validateAccountAccess(transaction.getAccountId(), accountRepository);
     Account account = accountRepository.findById(transaction.getAccountId())
         .orElseThrow(() -> new ResourceNotFoundException("Account with id " + transaction.getAccountId() + " not found"));
     Transaction newTransaction = new Transaction();
@@ -58,6 +66,7 @@ public class TransactionService {
 
   public Transaction updateTransaction(UUID id, TransactionDTO transaction) {
     Transaction transactionToUpdate = getTransactionById(id);
+    SecurityUtils.validateAccountAccess(transactionToUpdate.getAccount().getId(), accountRepository);
     transactionToUpdate.setDate(transaction.getDate());
     transactionToUpdate.setAmount(transaction.getAmount());
     transactionToUpdate.setMerchant(transaction.getMerchant());
@@ -68,6 +77,8 @@ public class TransactionService {
   }
 
   public boolean deleteTransaction(UUID id) {
+    Transaction transaction = getTransactionById(id);
+    SecurityUtils.validateAccountAccess(transaction.getAccount().getId(), accountRepository);
     if (transactionRepository.existsById(id)) {
       transactionRepository.deleteById(id);
       return true;
