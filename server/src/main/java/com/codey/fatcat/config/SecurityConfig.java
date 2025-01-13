@@ -24,9 +24,15 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
   private final CustomUserDetailsService customUserDetailsService;
+  private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
+  private final CustomAccessDeniedHandler customAccessDeniedHandler;
 
-  public SecurityConfig(CustomUserDetailsService customUserDetailsService) {
+  public SecurityConfig(CustomUserDetailsService customUserDetailsService,
+                        CustomAuthenticationEntryPoint customAuthenticationEntryPoint,
+                        CustomAccessDeniedHandler customAccessDeniedHandler) {
     this.customUserDetailsService = customUserDetailsService;
+    this.customAuthenticationEntryPoint = customAuthenticationEntryPoint;
+    this.customAccessDeniedHandler = customAccessDeniedHandler;
   }
 
   @Bean
@@ -39,14 +45,28 @@ public class SecurityConfig {
                                                  JwtAuthenticationFilter jwtAuthenticationFilter) throws Exception {
     return http
         .csrf(AbstractHttpConfigurer::disable)
+        .exceptionHandling(handling -> handling
+            .authenticationEntryPoint(customAuthenticationEntryPoint)
+            .accessDeniedHandler(customAccessDeniedHandler))
         .authorizeHttpRequests((authorize) -> authorize
                                    .requestMatchers(HttpMethod.POST, "/users/register").permitAll()
                                    .requestMatchers(HttpMethod.POST, "/users/login").permitAll()
                                    .requestMatchers(HttpMethod.POST, "/authenticate").permitAll()
-//                                   .requestMatchers(HttpMethod.PATCH, "/users/*/role").hasRole("ADMIN")
+//
                                    .requestMatchers("/accounts/**").permitAll()
                                    .requestMatchers("/transactions/**").permitAll()
 //            .requestMatchers("/api/users/register", "/api/users/login").permitAll()
+//            // Public endpoints
+//                                   .requestMatchers(HttpMethod.POST, "/user/register").permitAll()
+//                                   .requestMatchers(HttpMethod.POST, "/user/login").permitAll()
+//            // Admin only endpoints
+//                                   .requestMatchers(HttpMethod.PATCH, "/users/*/role").hasRole("ADMIN")
+//                                   .requestMatchers(HttpMethod.GET, "/users").hasRole("ADMIN")
+//            // Protected endpoints with authentication
+//                                   .requestMatchers("/accounts/**").authenticated()
+//                                   .requestMatchers("/transactions/**").authenticated()
+//                                   .requestMatchers("/users/**").authenticated()
+//            // Default to authenticated
                                    .anyRequest().authenticated()
         )
         .formLogin(AbstractAuthenticationFilterConfigurer::permitAll)
