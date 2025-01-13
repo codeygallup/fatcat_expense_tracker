@@ -4,7 +4,9 @@ import com.codey.fatcat.entity.User;
 import com.codey.fatcat.enums.Role;
 import com.codey.fatcat.exception.ResourceNotFoundException;
 import com.codey.fatcat.repository.UserRepository;
+import com.codey.fatcat.utils.SecurityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -34,15 +36,20 @@ public class UserService {
   }
 
   public List<User> getAllUsers() {
+    if (!SecurityUtils.hasRole("ADMIN")) {
+      throw new AccessDeniedException("User does not have access to this resource");
+    }
     return userRepository.findAll();
   }
 
   public User getUserById(UUID id) {
+    SecurityUtils.validateUserAccess(id, userRepository);
     return userRepository.findById(id)
         .orElseThrow(() -> new ResourceNotFoundException("User with id: " + id + " not found"));
   }
 
   public User updateUser(UUID id, User user) {
+    SecurityUtils.validateUserAccess(id, userRepository);
     User userToUpdate = userRepository.findById(id)
         .orElseThrow(() -> new ResourceNotFoundException("User with id: " + id + " not found"));
     userToUpdate.setName(user.getName());
@@ -52,9 +59,9 @@ public class UserService {
   }
 
   public User updateUserRole(UUID id, Role newRole) {
-//    if (!SecurityUtils.hasRole("ADMIN")) {
-//      throw new AccessDeniedException("Only admins can update user roles");
-//    }
+    if (!SecurityUtils.hasRole("ADMIN")) {
+      throw new AccessDeniedException("Only admins can update user roles");
+    }
     User userToUpdate = userRepository.findById(id)
         .orElseThrow(() -> new ResourceNotFoundException("User with id: " + id + " not found"));
 
@@ -63,6 +70,7 @@ public class UserService {
   }
 
   public boolean deleteUser(UUID id) {
+    SecurityUtils.validateUserAccess(id, userRepository);
     if (userRepository.existsById(id)) {
       userRepository.deleteById(id);
       return true;
