@@ -63,19 +63,20 @@ public class UserController {
   }
 
   @GetMapping
-  public ResponseEntity<List<User>> getAllUsers() {
-    return ResponseEntity.ok(userService.getAllUsers());
-//    List<User> users = userService.getAllUsers();
-//    List<UserDTO> userDTOs = users.stream()
-//        .map(user -> new UserDTO(user.getId(), user.getName(), user.getEmail(), user.getAccounts()))
-//        .toList();
-//    return ResponseEntity.ok(userDTOs);
+  public ResponseEntity<List<UserDTO>> getAllUsers() {
+//    return ResponseEntity.ok(userService.getAllUsers());
+    List<User> users = userService.getAllUsers();
+    List<UserDTO> userDTOs = users.stream()
+        .map(user -> new UserDTO(user.getId(), user.getName(), user.getEmail(), user.getAccounts()))
+        .toList();
+    return ResponseEntity.ok(userDTOs);
   }
 
   @GetMapping("/{id}")
   public ResponseEntity<UserDTO> getUserById(@PathVariable UUID id) {
     User user = userService.getUserById(id);
     return ResponseEntity.ok(new UserDTO(user.getId(), user.getName(), user.getEmail(), user.getAccounts()));
+//    return ResponseEntity.ok(userService.getUserById(id));
   }
 
   @PutMapping("/{id}")
