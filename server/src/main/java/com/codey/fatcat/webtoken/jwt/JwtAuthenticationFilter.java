@@ -1,7 +1,6 @@
-package com.codey.fatcat;
+package com.codey.fatcat.webtoken.jwt;
 
 import com.codey.fatcat.service.CustomUserDetailsService;
-import com.codey.fatcat.webtoken.JwtService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

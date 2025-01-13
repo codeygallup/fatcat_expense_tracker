@@ -1,4 +1,4 @@
-package com.codey.fatcat.webtoken;
+package com.codey.fatcat.webtoken.jwt;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
