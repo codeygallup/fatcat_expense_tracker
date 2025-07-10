@@ -9,6 +9,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.PositiveOrZero;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -37,9 +38,10 @@ public class Account extends BaseEntity {
   @OneToMany(mappedBy = "account", cascade = CascadeType.REMOVE, orphanRemoval = true)
   private List<Transaction> transactions;
 
-  @Column(name = "account_type")
+  @Column(name = "account_type", nullable = false)
   private String accountType;
 
   @Column(nullable = false)
+  @PositiveOrZero
   private BigDecimal balance;
 }
