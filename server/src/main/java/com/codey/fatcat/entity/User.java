@@ -34,7 +34,7 @@ import java.util.Set;
 public class User extends BaseEntity implements UserDetails {
 
   @JsonManagedReference
-  @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+  @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
   private Set<Account> accounts;
 
   @Column(nullable = false)
