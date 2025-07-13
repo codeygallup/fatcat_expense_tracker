@@ -34,6 +34,7 @@ public class SecurityErrorResponseHandler {
   public void writeResponse(HttpServletResponse response, CustomErrorResponse errorResponse) throws IOException {
     response.setStatus(errorResponse.getStatus());
     response.setContentType("application/json");
+    response.setCharacterEncoding("UTF-8");
     mapper.writeValue(response.getOutputStream(), errorResponse);
   }
 }
