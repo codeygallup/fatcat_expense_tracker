@@ -17,13 +17,12 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
   @ExceptionHandler(ResourceNotFoundException.class)
   public ResponseEntity<CustomErrorResponse> handleResourceNotFoundException(ResourceNotFoundException exc,
                                                                              WebRequest request) {
-    CustomErrorResponse errorResponse = new CustomErrorResponse();
-
-    errorResponse.setStatus(HttpStatus.NOT_FOUND.value());
-    errorResponse.setMessage(exc.getMessage());
-    errorResponse.setError("Resource not found");
-    errorResponse.setTimestamp(LocalDateTime.now());
-    errorResponse.setPath(((ServletWebRequest) request).getRequest().getRequestURI());
+    CustomErrorResponse errorResponse = buildErrorResponse(
+            HttpStatus.NOT_FOUND,
+            exc.getMessage(),
+            "Resource not found",
+            request
+    );
 
     return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
   }
@@ -31,13 +30,12 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
   @ExceptionHandler(UnauthorizedException.class)
   public ResponseEntity<CustomErrorResponse> handleUnauthorizedException(UnauthorizedException exc,
                                                                          WebRequest request) {
-    CustomErrorResponse errorResponse = new CustomErrorResponse();
-
-    errorResponse.setStatus(HttpStatus.UNAUTHORIZED.value());
-    errorResponse.setMessage(exc.getMessage());
-    errorResponse.setError("Unauthorized");
-    errorResponse.setTimestamp(LocalDateTime.now());
-    errorResponse.setPath(((ServletWebRequest) request).getRequest().getRequestURI());
+    CustomErrorResponse errorResponse = buildErrorResponse(
+            HttpStatus.UNAUTHORIZED,
+            exc.getMessage(),
+            "Unauthorized buddy",
+            request
+    );
 
     return new ResponseEntity<>(errorResponse, HttpStatus.UNAUTHORIZED);
   }
@@ -45,27 +43,37 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
   @ExceptionHandler(AccessDeniedException.class)
   public ResponseEntity<CustomErrorResponse> handleAccessDeniedException(AccessDeniedException exc,
                                                                          WebRequest request) {
-    CustomErrorResponse errorResponse = new CustomErrorResponse();
-
-    errorResponse.setStatus(HttpStatus.FORBIDDEN.value());
-    errorResponse.setMessage(exc.getMessage());
-    errorResponse.setError("Access denied");
-    errorResponse.setTimestamp(LocalDateTime.now());
-    errorResponse.setPath(((ServletWebRequest) request).getRequest().getRequestURI());
+    CustomErrorResponse errorResponse = buildErrorResponse(
+            HttpStatus.FORBIDDEN,
+            exc.getMessage(),
+            "Access Denied",
+            request
+    );
 
     return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
   }
 
   @ExceptionHandler(Exception.class)
   public ResponseEntity<CustomErrorResponse> handleGenericException(Exception exc, WebRequest request) {
-    CustomErrorResponse errorResponse = new CustomErrorResponse();
 
-    errorResponse.setStatus(HttpStatus.BAD_REQUEST.value());
-    errorResponse.setMessage(exc.getMessage());
-    errorResponse.setError("Bad request");
-    errorResponse.setTimestamp(LocalDateTime.now());
-    errorResponse.setPath(((ServletWebRequest) request).getRequest().getRequestURI());
+    CustomErrorResponse errorResponse = buildErrorResponse(
+            HttpStatus.BAD_REQUEST,
+            exc.getMessage(),
+            "Bad request",
+            request
+    );
 
     return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+  }
+
+  private CustomErrorResponse buildErrorResponse(HttpStatus status, String message, String error, WebRequest request) {
+    CustomErrorResponse errorResponse = new CustomErrorResponse();
+
+    errorResponse.setStatus(status.value());
+    errorResponse.setMessage(message);
+    errorResponse.setError(error);
+    errorResponse.setTimestamp(LocalDateTime.now());
+    errorResponse.setPath(((ServletWebRequest) request).getRequest().getRequestURI());
+    return errorResponse;
   }
 }

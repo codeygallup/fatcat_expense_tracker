@@ -13,7 +13,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.UUID;
 
-@Component
 public class SecurityUtils {
 
   public static String getCurrentUserEmail() {
