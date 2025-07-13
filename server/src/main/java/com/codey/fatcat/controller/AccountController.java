@@ -3,6 +3,8 @@ package com.codey.fatcat.controller;
 import com.codey.fatcat.dto.AccountDTO;
 import com.codey.fatcat.entity.Account;
 import com.codey.fatcat.service.AccountService;
+import com.codey.fatcat.utils.DTOConverter;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -28,39 +30,35 @@ public class AccountController {
   }
 
   @GetMapping
-  public ResponseEntity<List<Account>> getAllAccounts() {
-    return ResponseEntity.ok(accountService.getAllAccounts());
-//    List<Account> accounts = accountService.getAllAccounts();
-//    List<AccountDTO> accountDTOS = accounts.stream()
-//        .map(account -> new AccountDTO(account.getId(), account.getAccountType(),
-//                                       account.getBalance(),
-//                                       account.getUser().getId()))
-//        .toList();
-//    return new ResponseEntity<>(accountDTOS, HttpStatus.OK);
+  public ResponseEntity<List<AccountDTO>> getAllAccounts() {
+    List<Account> accounts = accountService.getAllAccounts();
+    List<AccountDTO> accountDTOs = accounts.stream()
+        .map(DTOConverter::convertToDTO)
+        .toList();
+    return ResponseEntity.ok(accountDTOs);
   }
 
   @GetMapping("/{id}")
-  public ResponseEntity<Account> getAccountById(@PathVariable UUID id) {
-//    Account account = accountService.getAccountById(id);
-//    return new ResponseEntity<>(new AccountDTO(account.getId(), account.getAccountType(),
-//                                               account.getBalance(),
-//                                               account.getUser().getId()), HttpStatus.OK);
-    return new ResponseEntity<>(accountService.getAccountById(id), HttpStatus.OK);
+  public ResponseEntity<AccountDTO> getAccountById(@PathVariable UUID id) {
+    Account account = accountService.getAccountById(id);
+    return ResponseEntity.ok(DTOConverter.convertToDTO(account));
   }
 
   @PostMapping
-  public ResponseEntity<Account> createAccount(@RequestBody AccountDTO account) {
-    return new ResponseEntity<>(accountService.createAccount(account), HttpStatus.CREATED);
+  public ResponseEntity<AccountDTO> createAccount(@Valid @RequestBody AccountDTO account) {
+    Account createdAccount = accountService.createAccount((account));
+    return ResponseEntity.status(HttpStatus.CREATED).body(DTOConverter.convertToDTO(createdAccount));
   }
 
   @PutMapping("/{id}")
-  public ResponseEntity<Account> updateAccount(@PathVariable UUID id, @RequestBody AccountDTO account) {
-    return new ResponseEntity<>(accountService.updateAccount(id, account), HttpStatus.ACCEPTED);
+  public ResponseEntity<AccountDTO> updateAccount(@PathVariable UUID id, @Valid @RequestBody AccountDTO account) {
+    Account updatedAccount = accountService.updateAccount(id, account);
+    return ResponseEntity.accepted().body(DTOConverter.convertToDTO(updatedAccount));
   }
 
   @DeleteMapping("/{id}")
-  public ResponseEntity<String> deleteAccount(@PathVariable UUID id) {
-    return accountService.deleteAccount(id) ? ResponseEntity.ok("Account deleted successfully") :
+  public ResponseEntity<Void> deleteAccount(@PathVariable UUID id) {
+    return accountService.deleteAccount(id) ? ResponseEntity.noContent().build() :
         ResponseEntity.notFound().build();
   }
 }

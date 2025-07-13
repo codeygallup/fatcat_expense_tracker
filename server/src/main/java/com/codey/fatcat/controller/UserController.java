@@ -5,8 +5,10 @@ import com.codey.fatcat.entity.User;
 import com.codey.fatcat.enums.Role;
 import com.codey.fatcat.service.CustomUserDetailsService;
 import com.codey.fatcat.service.UserService;
+import com.codey.fatcat.utils.DTOConverter;
 import com.codey.fatcat.webtoken.LoginForm;
 import com.codey.fatcat.webtoken.jwt.JwtService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -43,14 +45,13 @@ public class UserController {
   }
 
   @PostMapping("/register")
-  public ResponseEntity<String> registerUser(@RequestBody User user) {
+  public ResponseEntity<String> registerUser(@Valid @RequestBody User user) {
     userService.registerUser(user);
     return ResponseEntity.ok("User registered successfully");
-//    return new ResponseEntity<>(userService.registerUser(user), HttpStatus.CREATED);
   }
 
   @PostMapping("/login")
-  public ResponseEntity<String> loginUser(@RequestBody LoginForm loginForm) {
+  public ResponseEntity<String> loginUser(@Valid @RequestBody LoginForm loginForm) {
     Authentication authentication =
         authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginForm.email(),
                                                                                    loginForm.password()));
@@ -64,10 +65,9 @@ public class UserController {
 
   @GetMapping
   public ResponseEntity<List<UserDTO>> getAllUsers() {
-//    return ResponseEntity.ok(userService.getAllUsers());
     List<User> users = userService.getAllUsers();
     List<UserDTO> userDTOs = users.stream()
-        .map(user -> new UserDTO(user.getId(), user.getName(), user.getEmail(), user.getAccounts()))
+        .map(DTOConverter::convertToDTO)
         .toList();
     return ResponseEntity.ok(userDTOs);
   }
@@ -75,25 +75,24 @@ public class UserController {
   @GetMapping("/{id}")
   public ResponseEntity<UserDTO> getUserById(@PathVariable UUID id) {
     User user = userService.getUserById(id);
-    return ResponseEntity.ok(new UserDTO(user.getId(), user.getName(), user.getEmail(), user.getAccounts()));
-//    return ResponseEntity.ok(userService.getUserById(id));
+    return ResponseEntity.ok(DTOConverter.convertToDTO(user));
   }
 
   @PutMapping("/{id}")
-  public ResponseEntity<User> updateUser(@PathVariable UUID id, @RequestBody User user) {
-    return new ResponseEntity<>(userService.updateUser(id, user), HttpStatus.ACCEPTED);
+  public ResponseEntity<UserDTO> updateUser(@PathVariable UUID id, @Valid @RequestBody User user) {
+    User updatedUser = userService.updateUser(id, user);
+    return ResponseEntity.accepted().body(DTOConverter.convertToDTO(updatedUser));
   }
 
   @PatchMapping("/{id}/role")
-  public ResponseEntity<User> updateUserRole(@PathVariable UUID id, @RequestBody Role role) {
+  public ResponseEntity<UserDTO> updateUserRole(@PathVariable UUID id, @RequestBody Role role) {
     User updatedUser = userService.updateUserRole(id, role);
-    return new ResponseEntity<>(updatedUser, HttpStatus.ACCEPTED);
-
+    return ResponseEntity.accepted().body(DTOConverter.convertToDTO(updatedUser));
   }
 
   @DeleteMapping("/{id}")
-  public ResponseEntity<String> deleteUser(@PathVariable UUID id) {
-    return userService.deleteUser(id) ? ResponseEntity.ok("User deleted successfully") :
+  public ResponseEntity<Void> deleteUser(@PathVariable UUID id) {
+    return userService.deleteUser(id) ? ResponseEntity.noContent().build() :
         ResponseEntity.notFound().build();
   }
 }
