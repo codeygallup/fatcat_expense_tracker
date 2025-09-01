@@ -66,10 +66,9 @@ public class SecurityConfig {
 //                                   .requestMatchers("/accounts/**").authenticated()
 //                                   .requestMatchers("/transactions/**").authenticated()
 //                                   .requestMatchers("/users/**").authenticated()
-//            // Default to authenticated
+            // Default to authenticated
                                    .anyRequest().authenticated()
         )
-        .formLogin(AbstractAuthenticationFilterConfigurer::permitAll)
         .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
         .logout(logout -> logout
             .logoutUrl("/logout")
@@ -92,25 +91,3 @@ public class SecurityConfig {
     return new ProviderManager(authenticationProvider());
   }
 }
-
-
-//http
-//.csrf().disable()
-//.authorizeHttpRequests(auth -> auth
-//.requestMatchesrs("/api/users/register").permitAll()
-//.requestMatchers("/api/users/login").permitAll()
-//.anyRequest().authenticated()
-//)
-//.userDetailsService(customUserDetailsService)
-//.formLogin()
-//.loginProcessingUrl("/api/users/login")
-//.successHandler((request, response, authentication) -> {
-//response.setContentType("application/json");
-//response.getWriter().write("{\"message\": \"Login successful\"}");
-//})
-//.failureHandler((request, response, exception) -> {
-//response.setContentType("application/json");
-//response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-//response.getWriter().write("{\"error\": \"Invalid credientials\"}");
-//});
-//return http.build();
