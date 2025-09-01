@@ -1,5 +1,6 @@
 package com.codey.fatcat.dto;
 
+import com.codey.fatcat.enums.AccountType;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -15,7 +16,7 @@ import java.util.UUID;
 public class AccountDTO {
 
   private UUID id;
-  private String accountType;
+  private AccountType accountType;
   private BigDecimal balance;
   private UUID userId;
 
