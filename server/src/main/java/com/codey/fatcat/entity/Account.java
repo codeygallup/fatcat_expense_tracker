@@ -1,14 +1,9 @@
 package com.codey.fatcat.entity;
 
+import com.codey.fatcat.enums.AccountType;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.PositiveOrZero;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -38,9 +33,9 @@ public class Account extends BaseEntity {
   @OneToMany(mappedBy = "account", cascade = CascadeType.REMOVE, orphanRemoval = true)
   private List<Transaction> transactions;
 
-  //?? ???  @Enumerated(EnumType.STRING)
+  @Enumerated(EnumType.STRING)
   @Column(name = "account_type", nullable = false)
-  private String accountType;
+  private AccountType accountType;
 
   @Column(nullable = false)
   @PositiveOrZero
