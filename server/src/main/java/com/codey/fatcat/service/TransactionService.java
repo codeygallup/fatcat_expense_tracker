@@ -8,6 +8,7 @@ import com.codey.fatcat.exception.ResourceNotFoundException;
 import com.codey.fatcat.repository.AccountRepository;
 import com.codey.fatcat.repository.TransactionRepository;
 import com.codey.fatcat.utils.SecurityUtils;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -40,10 +41,12 @@ public class TransactionService {
     return transaction;
   }
 
+  @Transactional
   public Transaction createTransaction(TransactionDTO transaction) {
     SecurityUtils.validateAccountAccess(transaction.getAccountId(), accountRepository);
     Account account = accountRepository.findById(transaction.getAccountId())
         .orElseThrow(() -> new ResourceNotFoundException("Account with id " + transaction.getAccountId() + " not found"));
+
     Transaction newTransaction = new Transaction();
     newTransaction.setDate(transaction.getDate());
     newTransaction.setAmount(transaction.getAmount());
@@ -54,35 +57,86 @@ public class TransactionService {
     newTransaction.setAccount(account);
 
     BigDecimal currentBalance = account.getBalance();
-    BigDecimal newBalance =
-        transaction.getTransactionType() == TransactionType.CREDIT ? currentBalance.add(transaction.getAmount()) :
-            currentBalance.subtract(transaction.getAmount());
+    BigDecimal newBalance = applyTransaction(currentBalance, transaction.getAmount(), transaction.getTransactionType(), account);
 
     account.setBalance(newBalance);
     accountRepository.save(account);
 
     return transactionRepository.save(newTransaction);
+}
+
+
+  @Transactional
+public Transaction updateTransaction(UUID id, TransactionDTO transactionDTO) {
+    Transaction existingTransaction = getTransactionById(id);
+    Account account = getAccount(transactionDTO, existingTransaction);
+    accountRepository.save(account);
+
+    // Update transaction fields
+    existingTransaction.setDate(transactionDTO.getDate());
+    existingTransaction.setAmount(transactionDTO.getAmount());
+    existingTransaction.setMerchant(transactionDTO.getMerchant());
+    existingTransaction.setCategory(transactionDTO.getCategory());
+    existingTransaction.setReimbursable(transactionDTO.isReimbursable());
+    existingTransaction.setTransactionType(transactionDTO.getTransactionType());
+
+    return transactionRepository.save(existingTransaction);
+}
+
+  private static Account getAccount(TransactionDTO transactionDTO, Transaction existingTransaction) {
+    Account account = existingTransaction.getAccount();
+
+    // Reverse the old transaction's effect
+    BigDecimal currentBalance = account.getBalance();
+    BigDecimal balanceAfterReversal = reverseTransaction(currentBalance,
+            existingTransaction.getAmount(), existingTransaction.getTransactionType(), account);
+    // Then apply the new transaction
+    BigDecimal newBalance = applyTransaction(balanceAfterReversal,
+            transactionDTO.getAmount(), transactionDTO.getTransactionType(), account);
+
+    account.setBalance(newBalance);
+    return account;
   }
 
-  public Transaction updateTransaction(UUID id, TransactionDTO transaction) {
-    Transaction transactionToUpdate = getTransactionById(id);
-    SecurityUtils.validateAccountAccess(transactionToUpdate.getAccount().getId(), accountRepository);
-    transactionToUpdate.setDate(transaction.getDate());
-    transactionToUpdate.setAmount(transaction.getAmount());
-    transactionToUpdate.setMerchant(transaction.getMerchant());
-    transactionToUpdate.setCategory(transaction.getCategory());
-    transactionToUpdate.setReimbursable(transaction.isReimbursable());
-    transactionToUpdate.setTransactionType(transaction.getTransactionType());
-    return transactionRepository.save(transactionToUpdate);
-  }
-
-  public boolean deleteTransaction(UUID id) {
+  @Transactional
+public boolean deleteTransaction(UUID id) {
     Transaction transaction = getTransactionById(id);
-    SecurityUtils.validateAccountAccess(transaction.getAccount().getId(), accountRepository);
-    if (transactionRepository.existsById(id)) {
-      transactionRepository.deleteById(id);
-      return true;
+    Account account = transaction.getAccount();
+
+    // Reverse the transaction's effect on balance
+    BigDecimal currentBalance = account.getBalance();
+    BigDecimal newBalance = reverseTransaction(currentBalance, transaction.getAmount(), transaction.getTransactionType(), account);
+
+    account.setBalance(newBalance);
+    accountRepository.save(account);
+
+    transactionRepository.deleteById(id);
+    return true;
+}
+
+  private static BigDecimal applyTransaction(BigDecimal currentBalance, BigDecimal amount,
+                                             TransactionType transactionType, Account account) {
+    if (account.getAccountType().isLiabilityAccount()) {
+      return transactionType.addToBalance()
+              ? currentBalance.subtract(amount)
+              : currentBalance.add(amount);
+    } else {
+      return transactionType.addToBalance()
+              ? currentBalance.add(amount)
+              : currentBalance.subtract(amount);
     }
-    return false;
+  }
+
+  private static BigDecimal reverseTransaction(BigDecimal currentBalance, BigDecimal amount,
+                                               TransactionType transactionType, Account account) {
+    if (account.getAccountType().isLiabilityAccount()) {
+      return transactionType.addToBalance()
+              ? currentBalance.add(amount)
+              : currentBalance.subtract(amount);
+    } else {
+      return transactionType.addToBalance()
+              ? currentBalance.subtract(amount)
+              : currentBalance.add(amount);
+    }
   }
 }

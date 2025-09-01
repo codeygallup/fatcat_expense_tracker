@@ -53,7 +53,9 @@ public class UserService {
         .orElseThrow(() -> new ResourceNotFoundException("User with id: " + id + " not found"));
     userToUpdate.setName(user.getName());
     userToUpdate.setEmail(user.getEmail());
-    userToUpdate.setPassword(passwordEncoder.encode(user.getPassword()));
+    if (user.getPassword() != null && !user.getPassword().trim().isEmpty()) {
+      userToUpdate.setPassword(passwordEncoder.encode(user.getPassword().trim()));
+    }
     return userRepository.save(userToUpdate);
   }
 
