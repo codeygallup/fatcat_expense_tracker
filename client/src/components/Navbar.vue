@@ -1,5 +1,6 @@
 <script setup>
 import { ref } from 'vue'
+import { RouterLink } from 'vue-router'
 
 const isOpen = ref(false)
 const toggleMenu = () => {
@@ -8,20 +9,26 @@ const toggleMenu = () => {
 </script>
 
 <template>
-  <nav class="bg-gray-800 text-white p-4">
-    <div
-      class="container mx-auto flex justify-between items-center"
-      @click="$router.push('/dashboard')"
-    >
-      <div class="text-lg font-bold">
+  <nav class="bg-gray-800 text-white p-4 sticky top-0 z-50">
+    <div class="container mx-auto flex justify-between items-center">
+      <RouterLink :to="isLoggedIn ? '/dashboard' : '/'" class="flex items-center space-x-2">
         <img src="../assets/icon.png" alt="Fatcat Icon" class="w-20 h-20 inline-block ml-2" />
-        Fatcat
-      </div>
+        <span>Fatcat</span>
+      </RouterLink>
       <div class="hidden md:flex space-x-4">
-        <a href="/" class="px-3 py-2 hover:bg-gray-700 rounded">Home</a>
-        <a href="/login" class="px-3 py-2 hover:bg-gray-700 rounded">Login</a>
-        <a href="/register" class="px-3 py-2 hover:bg-gray-700 rounded">Register</a>
-        <a href="/dashboard" class="px-3 py-2 hover:bg-gray-700 rounded">Dashboard</a>
+        <template v-if="isLoggedIn">
+          <RouterLink to="/accounts">Accounts</RouterLink>
+          <RouterLink to="/bills">Bills</RouterLink>
+          <RouterLink to="/spending">Spending</RouterLink>
+          <RouterLink to="logout" @click="logout">Logout</RouterLink>
+        </template>
+
+        <template v-else>
+          <RouterLink to="/login" class="px-3 py-2 hover:bg-gray-700 rounded">Login</RouterLink>
+          <RouterLink to="/register" class="px-3 py-2 hover:bg-gray-700 rounded"
+            >Register</RouterLink
+          >
+        </template>
       </div>
       <button class="md:hidden px-3 py-2 border rounded" @click="toggleMenu">
         <svg
@@ -43,9 +50,24 @@ const toggleMenu = () => {
   </nav>
 
   <div v-if="isOpen" class="md:hidden bg-gray-800 text-white p-4">
-    <!-- <a href="/" class="block px-3 py-2 hover:bg-gray-700 rounded">Home</a> -->
-    <a href="/login" class="block px-3 py-2 hover:bg-gray-700 rounded">Login</a>
-    <a href="/register" class="block px-3 py-2 hover:bg-gray-700 rounded">Register</a>
-    <!-- <a href="/dashboard" class="block px-3 py-2 hover:bg-gray-700 rounded">Dashboard</a> -->
+    <template v-if="isLoggedIn">
+      <RouterLink to="/accounts" class="block px-3 py-2 hover:bg-gray-700 rounded"
+        >Accounts</RouterLink
+      >
+      <RouterLink to="/bills" class="block px-3 py-2 hover:bg-gray-700 rounded">Bills</RouterLink>
+      <RouterLink to="/spending" class="block px-3 py-2 hover:bg-gray-700 rounded"
+        >Spending</RouterLink
+      >
+      <RouterLink to="/logout" class="block px-3 py-2 hover:bg-gray-700 rounded" @click="logout"
+        >Logout</RouterLink
+      >
+    </template>
+
+    <template v-else>
+      <RouterLink to="/login" class="block px-3 py-2 hover:bg-gray-700 rounded">Login</RouterLink>
+      <RouterLink to="/register" class="block px-3 py-2 hover:bg-gray-700 rounded"
+        >Register</RouterLink
+      >
+    </template>
   </div>
 </template>

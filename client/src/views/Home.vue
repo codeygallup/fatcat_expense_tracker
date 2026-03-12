@@ -3,7 +3,7 @@ import icon from '../assets/icon.png'
 </script>
 
 <template>
-  <div class="bg-gray-100 min-h-screen flex flex-col items-center justify-evenly p-8 mx-auto">
+  <div class="flex flex-col items-center justify-around p-8 flex-1">
     <div class="flex flex-col items-center space-y-8">
       <h1 class="text-3xl font-bold text-gray-800 text-center">Fatcat Expense Tracker</h1>
     </div>
