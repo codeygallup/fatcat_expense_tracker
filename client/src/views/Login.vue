@@ -1,3 +1,7 @@
+<script setup lang="ts">
+import AuthForm from '../components/AuthForm.vue'
+</script>
+
 <template>
-  <h1 class="text-3xl font-bold">Login Page</h1>
+  <AuthForm />
 </template>
