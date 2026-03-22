@@ -1,5 +1,8 @@
 <script setup>
 import { ref } from 'vue'
+import { useAuth } from '@/composables/useAuth'
+
+const { isLoggedIn, logout } = useAuth()
 
 const isOpen = ref(false)
 const toggleMenu = () => {
