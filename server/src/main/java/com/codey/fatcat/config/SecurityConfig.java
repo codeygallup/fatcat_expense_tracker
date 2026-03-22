@@ -47,7 +47,7 @@ public class SecurityConfig {
   public CorsConfigurationSource corsConfigurationSource() {
     CorsConfiguration configuration = new CorsConfiguration();
     configuration.setAllowCredentials(true);
-    configuration.addAllowedOrigin("http://localhost:3000");
+    configuration.addAllowedOrigin("http://localhost:5173");
     configuration.addAllowedHeader("*");
     configuration.addAllowedMethod("*");
 
@@ -66,7 +66,8 @@ public class SecurityConfig {
             .authenticationEntryPoint(customAuthenticationEntryPoint)
             .accessDeniedHandler(customAccessDeniedHandler))
         .authorizeHttpRequests((authorize) -> authorize
-                                   .requestMatchers(HttpMethod.POST, "/users/register").permitAll()
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/users/register").permitAll()
                                    .requestMatchers(HttpMethod.POST, "/users/login").permitAll()
                                    .requestMatchers(HttpMethod.POST, "/authenticate").permitAll()
 //
