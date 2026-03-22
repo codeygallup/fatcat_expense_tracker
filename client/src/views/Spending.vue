@@ -1,19 +1,27 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import { ref } from 'vue'
+const open = ref(false)
+const toggleMenu = () => {
+  open.value = !open.value
+}
+</script>
 
 <template>
   <div class="flex flex-col items-center justify-around p-8 flex-1">
-    <h1 class="text-3xl font-bold text-gray-800 text-center">Account Page</h1>
+    <h1 class="text-3xl font-bold text-gray-800 text-center">Spending Page</h1>
     <p class="text-lg text-gray-600 text-center">
-      This is where you can view and manage your account details, including your expenses, budgets,
+      This is where you can view and manage your spending details, including your expenses, budgets,
       and settings.
     </p>
-    <div class="w-full max-w-md mt-8">
+    <div class="w-full max-w-md mt-8" @click="toggleMenu">
       <h2 class="text-2xl font-semibold text-gray-800 mb-4">Date Range</h2>
-      <div class="flex space-x-4">
+      <div v-show="open" class="flex flex-col gap-4">
+        <label class="text-gray-600">Start Date:</label>
         <input
           type="date"
           class="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
+        <label class="text-gray-600">End Date:</label>
         <input
           type="date"
           class="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
