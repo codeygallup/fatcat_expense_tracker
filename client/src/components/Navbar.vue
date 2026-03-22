@@ -21,8 +21,8 @@ const toggleMenu = () => {
         <template v-if="isLoggedIn">
           <RouterLink to="/accounts">Accounts</RouterLink>
           <RouterLink to="/bills">Bills</RouterLink>
-          <RouterLink to="/spending">Spending</RouterLink>
-          <RouterLink to="logout" @click="logout">Logout</RouterLink>
+          <RouterLink to="/transactions">Spending</RouterLink>
+          <button @click="logout" class="px-3 py-2 hover:bg-gray-700 rounded">Logout</button>
         </template>
 
         <template v-else>
@@ -57,11 +57,13 @@ const toggleMenu = () => {
         >Accounts</RouterLink
       >
       <RouterLink to="/bills" class="block px-3 py-2 hover:bg-gray-700 rounded">Bills</RouterLink>
-      <RouterLink to="/spending" class="block px-3 py-2 hover:bg-gray-700 rounded"
+      <RouterLink to="/transactions" class="block px-3 py-2 hover:bg-gray-700 rounded"
         >Spending</RouterLink
       >
-      <RouterLink to="/logout" class="block px-3 py-2 hover:bg-gray-700 rounded" @click="logout"
-        >Logout</RouterLink
+      <button @click="logout" class="block w-full text-left px-3 py-2 hover:bg-gray-700 rounded">
+        Logout
+      </button>
+
       >
     </template>
 
