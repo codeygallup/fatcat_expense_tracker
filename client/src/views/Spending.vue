@@ -4,6 +4,20 @@ const open = ref(false)
 const toggleMenu = () => {
   open.value = !open.value
 }
+const chartOptions = {
+  chart: {
+    id: 'spending-chart',
+  },
+  xaxis: {
+    categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+  },
+}
+const series = [
+  {
+    name: 'Spending',
+    data: [500, 700, 400, 600, 300, 800],
+  },
+]
 </script>
 
 <template>
@@ -27,8 +41,8 @@ const toggleMenu = () => {
           class="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
       </div>
-      <div>CHART GOES HERE</div>
     </div>
+    <apexchart type="line" :options="chartOptions" :series="series" />
     <div class="w-full max-w-md mt-8">
       <p class="text-lg font-semibold text-gray-800 mb-4">Spending by Category</p>
       <ul>
