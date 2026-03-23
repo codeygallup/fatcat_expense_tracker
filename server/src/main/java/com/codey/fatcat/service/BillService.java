@@ -12,6 +12,7 @@ import com.codey.fatcat.utils.SecurityUtils;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -37,6 +38,14 @@ public class BillService {
 
     public Bill getBillById(UUID id) {
         return billRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Bill with id: " + id + " not found"));
+    }
+
+    public List<Bill> getUpcomingBills() {
+        String currentUserEmail = SecurityUtils.getCurrentUserEmail();
+        User currentUser = userRepository.findByEmail(currentUserEmail)
+                .orElseThrow(() -> new UnauthorizedException("User not found"));
+        LocalDate today = LocalDate.now();
+        return billRepository.findAllByUserIdAndDueDateBetween(currentUser.getId(), today, today.plusDays(14));
     }
 
     public Bill createBill(BillDTO bill) {

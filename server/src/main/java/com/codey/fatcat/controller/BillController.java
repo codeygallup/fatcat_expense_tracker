@@ -35,6 +35,13 @@ public class BillController {
         return ResponseEntity.ok(DTOConverter.convertToDTO(bill));
     }
 
+    @GetMapping("/upcoming")
+    public ResponseEntity<List<BillDTO>> getUpcomingBills() {
+        List<Bill> bills = billService.getUpcomingBills();
+        List<BillDTO>  billDTOs = bills.stream().map(DTOConverter::convertToDTO).toList();
+        return ResponseEntity.ok(billDTOs);
+    }
+
     @PostMapping
     public ResponseEntity<BillDTO> createBill(@Valid @RequestBody BillDTO billDTO) {
         Bill bill = billService.createBill(billDTO);
