@@ -16,9 +16,6 @@ const overdueBills = computed(() => billsDue.value.filter(b => b.status === 'OVE
 const hasOverdue = computed(() => overdueBills.value.length > 0)
 
 onMounted(async () => {
-  const token = localStorage.getItem('token')
-  const headers = { Authorization: `Bearer ${token}` }
-
   // accounts.value = await api('/accounts', { headers }).then(r => r.json())
   // billsDue.value = await api('/bills/upcoming', { headers }).then(r => r.json())
   // recentTransactions.value = await api('/transactions/recent', { headers }).then(r => r.json())
