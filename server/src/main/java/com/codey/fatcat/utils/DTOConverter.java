@@ -9,6 +9,9 @@ import com.codey.fatcat.entity.Bill;
 import com.codey.fatcat.entity.Transaction;
 import com.codey.fatcat.entity.User;
 
+import java.util.List;
+import java.util.function.Function;
+
 public class DTOConverter {
 
     public static UserDTO convertToDTO(User user) {
@@ -37,5 +40,9 @@ public class DTOConverter {
                 bill.getUser().getId(),
                 bill.getAccount() != null ? bill.getAccount().getId() : null
         );
+    }
+
+    public static <T, R> List<R> toList(List<T> items, Function<T, R> function) {
+        return items.stream().map(function).toList();
     }
 }

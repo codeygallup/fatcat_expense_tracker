@@ -32,10 +32,7 @@ public class AccountController {
   @GetMapping
   public ResponseEntity<List<AccountDTO>> getAllAccounts() {
     List<Account> accounts = accountService.getAllAccounts();
-    List<AccountDTO> accountDTOs = accounts.stream()
-        .map(DTOConverter::convertToDTO)
-        .toList();
-    return ResponseEntity.ok(accountDTOs);
+    return ResponseEntity.ok(DTOConverter.toList(accounts, DTOConverter::convertToDTO));
   }
 
   @GetMapping("/{id}")
