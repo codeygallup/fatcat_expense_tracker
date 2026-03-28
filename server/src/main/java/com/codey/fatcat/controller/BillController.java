@@ -25,8 +25,7 @@ public class BillController {
     @GetMapping
     public ResponseEntity<List<BillDTO>> getAllBills() {
         List<Bill> bills = billService.getAllBills();
-        List<BillDTO> billDTOs = bills.stream().map(DTOConverter::convertToDTO).toList();
-        return ResponseEntity.ok(billDTOs);
+        return ResponseEntity.ok(DTOConverter.toList(bills, DTOConverter::convertToDTO));
     }
 
     @GetMapping("/{id}")
@@ -38,8 +37,7 @@ public class BillController {
     @GetMapping("/upcoming")
     public ResponseEntity<List<BillDTO>> getUpcomingBills() {
         List<Bill> bills = billService.getUpcomingBills();
-        List<BillDTO>  billDTOs = bills.stream().map(DTOConverter::convertToDTO).toList();
-        return ResponseEntity.ok(billDTOs);
+        return ResponseEntity.ok(DTOConverter.toList(bills, DTOConverter::convertToDTO));
     }
 
     @PostMapping

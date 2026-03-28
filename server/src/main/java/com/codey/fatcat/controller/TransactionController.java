@@ -33,8 +33,7 @@ public class TransactionController {
     @GetMapping
     public ResponseEntity<List<TransactionDTO>> getAllTransactions() {
         List<Transaction> transactions = transactionService.getAllTransactions();
-        List<TransactionDTO> transactionDTOs = transactions.stream().map(DTOConverter::convertToDTO).toList();
-        return ResponseEntity.ok(transactionDTOs);
+        return ResponseEntity.ok(DTOConverter.toList(transactions, DTOConverter::convertToDTO));
     }
 
     @GetMapping("/{id}")
@@ -46,8 +45,7 @@ public class TransactionController {
     @GetMapping("/recent")
     public ResponseEntity<List<TransactionDTO>> getRecentTransactions() {
         Page<Transaction> transactions = transactionService.getRecentTransactions();
-        List<TransactionDTO> transactionDTOs = transactions.stream().map(DTOConverter::convertToDTO).toList();
-        return ResponseEntity.ok(transactionDTOs);
+        return ResponseEntity.ok(DTOConverter.toList(transactions.getContent(), DTOConverter::convertToDTO));
     }
 
     @PostMapping
