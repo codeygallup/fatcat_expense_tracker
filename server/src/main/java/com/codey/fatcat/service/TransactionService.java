@@ -37,11 +37,11 @@ public class TransactionService {
     }
 
   public List<Transaction> getAllTransactions() {
-    String currentUserEmail = SecurityUtils.getCurrentUserEmail();
-    if (SecurityUtils.hasRole("ADMIN")) {
-      return transactionRepository.findAll();
-    }
-    return transactionRepository.findAllByAccount_User_Email(currentUserEmail);
+      if (SecurityUtils.hasRole("ADMIN")) {
+          return transactionRepository.findAll();
+      }
+      User currentUser = SecurityUtils.getCurrentUser(userRepository);
+    return transactionRepository.findAllByAccount_UserId(currentUser.getId(), Pageable.unpaged()).getContent();
   }
 
   public Transaction getTransactionById(UUID id) {
@@ -52,8 +52,7 @@ public class TransactionService {
   }
 
   public Page<Transaction> getRecentTransactions() {
-      String currentUserEmail = SecurityUtils.getCurrentUserEmail();
-      User currentUser = userRepository.findByEmail(currentUserEmail).orElseThrow(() -> new UnauthorizedException("User not found"));
+      User currentUser = SecurityUtils.getCurrentUser(userRepository);
       Pageable pageable = PageRequest.of(0, 10, Sort.by("date").descending());
 
       return transactionRepository.findAllByAccount_UserId(currentUser.getId(), pageable);

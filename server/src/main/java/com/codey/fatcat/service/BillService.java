@@ -28,11 +28,10 @@ public class BillService {
     }
 
     public List<Bill> getAllBills() {
-        String currentUserEmail = SecurityUtils.getCurrentUserEmail();
         if (SecurityUtils.hasRole("ADMIN")) {
             return billRepository.findAll();
         }
-        User currentUser = userRepository.findByEmail(currentUserEmail).orElseThrow(() -> new UnauthorizedException("User not found"));
+        User currentUser = SecurityUtils.getCurrentUser(userRepository);
         return billRepository.findAllByUserId(currentUser.getId());
     }
 
@@ -41,9 +40,7 @@ public class BillService {
     }
 
     public List<Bill> getUpcomingBills() {
-        String currentUserEmail = SecurityUtils.getCurrentUserEmail();
-        User currentUser = userRepository.findByEmail(currentUserEmail)
-                .orElseThrow(() -> new UnauthorizedException("User not found"));
+        User currentUser = SecurityUtils.getCurrentUser(userRepository);
         LocalDate today = LocalDate.now();
         return billRepository.findAllByUserIdAndDueDateBetween(currentUser.getId(), today, today.plusDays(14));
     }
