@@ -12,7 +12,5 @@ import java.util.UUID;
 
 @Repository
 public interface TransactionRepository extends JpaRepository<Transaction, UUID> {
-  List<Transaction> findAllByAccount_User_Email(String email);
-
   Page<Transaction> findAllByAccount_UserId(UUID userId, Pageable pageable);
 }
