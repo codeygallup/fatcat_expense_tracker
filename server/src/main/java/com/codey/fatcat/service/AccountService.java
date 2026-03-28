@@ -26,12 +26,10 @@ public class AccountService {
   }
 
   public List<Account> getAllAccounts() {
-    String currentUserEmail = SecurityUtils.getCurrentUserEmail();
     if (SecurityUtils.hasRole("ADMIN")) {
       return accountRepository.findAll();
     }
-    User currentUser =
-        userRepository.findByEmail(currentUserEmail).orElseThrow(() -> new UnauthorizedException("User not found"));
+    User currentUser = SecurityUtils.getCurrentUser(userRepository);
     return accountRepository.findAllByUserId(currentUser.getId());
   }
 

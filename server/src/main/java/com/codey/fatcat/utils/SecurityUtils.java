@@ -15,36 +15,41 @@ import java.util.UUID;
 
 public class SecurityUtils {
 
-  public static String getCurrentUserEmail() {
-    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-    if (authentication == null || !authentication.isAuthenticated()) {
-      throw new UnauthorizedException("User is not authenticated");
+    public static User getCurrentUser(UserRepository userRepository) {
+        return userRepository.findByEmail(getCurrentUserEmail())
+                .orElseThrow(() -> new UnauthorizedException("User not found"));
     }
-    return authentication.getName();
-  }
 
-  public static boolean hasRole(String role) {
-    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-    return authentication != null && authentication.getAuthorities()
-        .stream()
-        .anyMatch(g -> g.getAuthority().equals("ROLE_" + role));
-  }
-
-  public static void validateUserAccess(UUID userId, UserRepository userRepository) {
-    String userEmail = getCurrentUserEmail();
-    User user = userRepository.findByEmail(userEmail).orElseThrow(() -> new UnauthorizedException("User not found"));
-    if (!user.getId().equals(userId) && !hasRole("ADMIN")) {
-      throw new AccessDeniedException("User does not have access to this resource");
+    public static String getCurrentUserEmail() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new UnauthorizedException("User is not authenticated");
+        }
+        return authentication.getName();
     }
-  }
 
-  public static void validateAccountAccess(UUID accountId, AccountRepository accountRepository) {
-    String userEmail = getCurrentUserEmail();
-    Account account =
-        accountRepository.findById(accountId).orElseThrow(() -> new ResourceNotFoundException("Account not found"));
-
-    if (!account.getUser().getEmail().equals(userEmail) && !hasRole("ADMIN")) {
-      throw new AccessDeniedException("User does not have access to this resource");
+    public static boolean hasRole(String role) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        return authentication != null && authentication.getAuthorities()
+                .stream()
+                .anyMatch(g -> g.getAuthority().equals("ROLE_" + role));
     }
-  }
+
+    public static void validateUserAccess(UUID userId, UserRepository userRepository) {
+        String userEmail = getCurrentUserEmail();
+        User user = userRepository.findByEmail(userEmail).orElseThrow(() -> new UnauthorizedException("User not found"));
+        if (!user.getId().equals(userId) && !hasRole("ADMIN")) {
+            throw new AccessDeniedException("User does not have access to this resource");
+        }
+    }
+
+    public static void validateAccountAccess(UUID accountId, AccountRepository accountRepository) {
+        String userEmail = getCurrentUserEmail();
+        Account account =
+                accountRepository.findById(accountId).orElseThrow(() -> new ResourceNotFoundException("Account not found"));
+
+        if (!account.getUser().getEmail().equals(userEmail) && !hasRole("ADMIN")) {
+            throw new AccessDeniedException("User does not have access to this resource");
+        }
+    }
 }
