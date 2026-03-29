@@ -17,6 +17,7 @@ public class AccountDTO {
 
   private UUID id;
   private AccountType accountType;
+  private String name;
   private BigDecimal balance;
   private UUID userId;
 
