@@ -64,7 +64,6 @@ const toggleMenu = () => {
         Logout
       </button>
 
-      >
     </template>
 
     <template v-else>
