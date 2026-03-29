@@ -47,6 +47,7 @@ public class AccountService {
     newAccount.setAccountType(account.getAccountType());
     newAccount.setBalance(account.getBalance());
     newAccount.setUser(user);
+    newAccount.setName(account.getName());
     return accountRepository.save(newAccount);
   }
 
@@ -55,6 +56,7 @@ public class AccountService {
     Account oldAccount = getAccountById(id);
     oldAccount.setAccountType(account.getAccountType());
     oldAccount.setBalance(account.getBalance());
+    oldAccount.setName(account.getName());
     return accountRepository.save(oldAccount);
   }
 
