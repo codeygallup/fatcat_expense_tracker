@@ -52,6 +52,12 @@ public class BillController {
         return ResponseEntity.accepted().body(DTOConverter.convertToDTO(bill));
     }
 
+    @PatchMapping("/{id}")
+    public ResponseEntity<BillDTO> markAsPaid(@PathVariable UUID id) {
+        Bill bill = billService.markAsPaid(id);
+        return ResponseEntity.ok(DTOConverter.convertToDTO(bill));
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<BillDTO> deleteBill(@PathVariable UUID id) {
         return billService.deleteBill(id) ? ResponseEntity.noContent().build() : ResponseEntity.notFound().build();
