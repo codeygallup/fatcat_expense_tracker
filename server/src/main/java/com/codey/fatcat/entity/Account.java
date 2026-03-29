@@ -33,6 +33,9 @@ public class Account extends BaseEntity {
   @OneToMany(mappedBy = "account", cascade = CascadeType.REMOVE, orphanRemoval = true)
   private List<Transaction> transactions;
 
+  @Column(nullable = false)
+  private String name;
+
   @Enumerated(EnumType.STRING)
   @Column(name = "account_type", nullable = false)
   private AccountType accountType;
