@@ -19,7 +19,7 @@ public class DTOConverter {
     }
 
     public static AccountDTO convertToDTO(Account account) {
-        return new AccountDTO(account.getId(), account.getAccountType(), account.getBalance(), account.getUser().getId());
+        return new AccountDTO(account.getId(), account.getAccountType(), account.getName(), account.getBalance(), account.getUser().getId());
     }
 
     public static TransactionDTO convertToDTO(Transaction transaction) {
