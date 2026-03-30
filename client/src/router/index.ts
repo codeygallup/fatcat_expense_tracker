@@ -8,6 +8,7 @@ const router = createRouter({
     { path: '/register', name: 'Register', component: () => import('@/views/Register.vue') },
     { path: '/dashboard', name: 'Dashboard', component: () => import('@/views/Dashboard.vue') },
     { path: '/accounts', name: 'Accounts', component: () => import('@/views/Account.vue') },
+    { path: '/accounts/:id', name: 'AccountDetail', component: () => import('@/views/AccountDetail.vue') },
     { path: '/bills', name: 'Bills', component: () => import('@/views/Bill.vue') },
     { path: '/transactions', name: 'Transactions', component: () => import('@/views/Spending.vue') }
   ],
