@@ -1,65 +1,292 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-const bills = ref([
-  { id: 1, name: 'Electricity', amount: 100, dueDate: '2026-07-01' },
-  { id: 2, name: 'Water', amount: 50, dueDate: '2026-03-25' },
-  { id: 3, name: 'Internet', amount: 75, dueDate: '2024-07-10' },
-])
-const isPast = (date) => {
-  return new Date(date) < new Date()
-}
-const nearlyDue = (date) => {
-  const today = new Date()
-  const dueDate = new Date(date)
-  const diffTime = dueDate - today
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-  return diffDays > 0 && diffDays <= 3
+import { computed, onMounted, ref } from 'vue'
+import api from '@/api/index'
+
+type BillStatus = 'PAID' | 'UNPAID' | 'OVERDUE'
+type FilterTab = 'ALL' | BillStatus
+
+interface Bill {
+  id: string
+  name: string
+  amount: number
+  dueDate: string
+  status: BillStatus
 }
 
-const sortedBills = computed(() =>
-  [...bills.value].sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate))
-)
+interface BillForm {
+  name: string
+  amount: string
+  dueDate: string
+}
+
+const bills = ref<Bill[]>([])
+const activeFilter = ref<FilterTab>('ALL')
+const showModal = ref(false)
+const editingBill = ref<Bill | null>(null)
+const form = ref<BillForm>({ name: '', amount: '', dueDate: '' })
+
+const TABS: FilterTab[] = ['ALL', 'UNPAID', 'OVERDUE', 'PAID']
+
+const tabLabel = (tab: FilterTab) =>
+  tab === 'ALL' ? 'All' : tab.charAt(0) + tab.slice(1).toLowerCase()
+
+const filteredBills = computed(() => {
+  const list =
+    activeFilter.value === 'ALL'
+      ? bills.value
+      : bills.value.filter((b) => b.status === activeFilter.value)
+  return [...list].sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())
+})
+
+const statusBadge = (status: BillStatus) =>
+  ({
+    PAID: 'bg-green-100 text-green-700',
+    UNPAID: 'bg-yellow-100 text-yellow-700',
+    OVERDUE: 'bg-red-100 text-red-600',
+  })[status]
+
+const rowBg = (status: BillStatus) =>
+  ({
+    PAID: 'bg-green-50 border-green-200',
+    UNPAID: 'bg-white border-gray-200',
+    OVERDUE: 'bg-red-50 border-red-200',
+  })[status]
+
+async function fetchBills() {
+  bills.value = await api('/bills').then((r) => r.json())
+}
+
+async function markPaid(bill: Bill) {
+  if (bill.status === 'PAID') return
+  await api(`/bills/${bill.id}`, { method: 'PATCH' })
+  await fetchBills()
+}
+
+async function deleteBill(id: string) {
+  if (!window.confirm('Delete this bill?')) return
+  await api(`/bills/${id}`, { method: 'DELETE' })
+  await fetchBills()
+}
+
+function openAdd() {
+  editingBill.value = null
+  form.value = { name: '', amount: '', dueDate: '' }
+  showModal.value = true
+}
+
+function openEdit(bill: Bill) {
+  editingBill.value = bill
+  form.value = { name: bill.name, amount: String(bill.amount), dueDate: bill.dueDate }
+  showModal.value = true
+}
+
+async function submitForm() {
+  const payload = {
+    name: form.value.name,
+    amount: parseFloat(form.value.amount),
+    dueDate: form.value.dueDate,
+    status: editingBill.value ? editingBill.value.status : 'UNPAID',
+  }
+  if (editingBill.value) {
+    await api(`/bills/${editingBill.value.id}`, {
+      method: 'PUT',
+      body: JSON.stringify(payload),
+    })
+  } else {
+    await api('/bills', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    })
+  }
+  showModal.value = false
+  await fetchBills()
+}
+
+onMounted(fetchBills)
 </script>
 
 <template>
-  <div class="flex flex-col items-center justify-around p-8 flex-1">
-    <div class="flex flex-col items-center justify-around p-8 flex-1 w-full max-w-4xl">
-      <h1 class="text-3xl font-bold text-gray-800 text-center">Bill Page</h1>
-      <div class="w-full max-w-md mt-8">
-        <div
-          v-for="bill in sortedBills"
-          :key="bill.id"
-          class="shadow-md rounded-lg p-4 mb-4 border"
-          :class="
-            isPast(bill.dueDate)
-              ? 'bg-red-100 border-red-300'
-              : nearlyDue(bill.dueDate)
-                ? 'bg-yellow-100 border-yellow-300'
-                : 'bg-gray-50 border-gray-200'
-          "
-        >
-          <h2 class="text-xl font-bold text-gray-800">{{ bill.name }}</h2>
-          <div class="h-px bg-gray-200 my-2"></div>
-          <p class="text-gray-600">Amount: ${{ bill.amount }}</p>
-          <p class="text-gray-600">
-            Due Date: {{ bill.dueDate }} <span v-if="isPast(bill.dueDate)">(Overdue)</span>
-            <span v-else-if="nearlyDue(bill.dueDate)">(Due Soon)</span>
-          </p>
+  <div class="p-4 max-w-2xl min-w-sm mx-auto pb-24 sm:pb-4">
+    <div class="flex items-center justify-between mb-4">
+      <h1 class="text-xl font-bold text-gray-900">Bills</h1>
+      <button
+        @click="openAdd"
+        class="hidden sm:flex items-center gap-1 text-sm font-medium bg-gray-900 text-white px-3 py-1.5 rounded-lg hover:bg-gray-700 transition-colors"
+      >
+        + Add Bill
+      </button>
+    </div>
+
+    <div class="flex gap-1 mb-4 bg-gray-100 rounded-xl p-1">
+      <button
+        v-for="tab in TABS"
+        :key="tab"
+        @click="activeFilter = tab"
+        class="flex-1 text-xs font-medium py-1.5 rounded-lg transition-colors"
+        :class="
+          activeFilter === tab
+            ? 'bg-white shadow text-gray-900'
+            : 'text-gray-500 hover:text-gray-700'
+        "
+      >
+        {{ tabLabel(tab) }}
+      </button>
+    </div>
+    <p class="text-xs text-gray-400 text-center mb-4">
+      Tap a bill's status badge to mark it as paid
+    </p>
+
+    <div class="flex flex-col gap-2">
+      <div
+        v-for="bill in filteredBills"
+        :key="bill.id"
+        class="border rounded-xl p-4 flex items-center gap-3 transition-colors"
+        :class="rowBg(bill.status)"
+      >
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-2 flex-wrap">
+            <span class="font-medium text-gray-900 truncate">{{ bill.name }}</span>
+            <span
+              @click="markPaid(bill)"
+              class="text-xs px-2 py-0.5 rounded-full font-medium shrink-0 cursor-pointer select-none"
+              :class="statusBadge(bill.status)"
+              :title="bill.status !== 'PAID' ? 'Click to mark paid' : ''"
+            >
+              {{ tabLabel(bill.status) }}
+            </span>
+          </div>
+          <span class="text-xs text-gray-400 mt-0.5 block">
+            Due
+            {{
+              new Date(bill.dueDate).toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric',
+              })
+            }}
+          </span>
         </div>
-        <div class="flex flex-col mt-6">
+
+        <span class="text-base font-semibold text-gray-900 shrink-0">
+          ${{ bill.amount.toFixed(2) }}
+        </span>
+
+        <div class="flex items-center gap-1 shrink-0">
           <button
-            class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded w-full"
+            @click.stop="openEdit(bill)"
+            title="Edit"
+            class="p-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-black/5 transition-colors"
           >
-            Add New Bill
+            <!-- pencil -->
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="w-4 h-4"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+            </svg>
           </button>
           <button
-            class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded w-full mt-4"
+            @click.stop="deleteBill(bill.id)"
+            title="Delete"
+            class="p-2 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
           >
-            Delete All Bills
+            <!-- trash -->
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="w-4 h-4"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <polyline points="3 6 5 6 21 6" />
+              <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+              <path d="M10 11v6M14 11v6" />
+              <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+            </svg>
           </button>
         </div>
       </div>
+
+      <div v-if="!filteredBills.length" class="text-sm text-gray-400 text-center py-12">
+        No {{ activeFilter === 'ALL' ? '' : tabLabel(activeFilter).toLowerCase() + ' ' }}bills
+      </div>
     </div>
+
+    <button
+      @click="openAdd"
+      class="fixed bottom-6 right-6 sm:hidden w-14 h-14 bg-gray-900 text-white rounded-full text-2xl flex items-center justify-center shadow-lg hover:bg-gray-700 transition-colors"
+    >
+      +
+    </button>
+
+    <Teleport to="body">
+      <div
+        v-if="showModal"
+        class="fixed inset-0 bg-black/40 flex items-end sm:items-center justify-center z-50 p-4"
+        @click.self="showModal = false"
+      >
+        <div class="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl">
+          <h2 class="text-lg font-bold text-gray-900 mb-4">
+            {{ editingBill ? 'Edit Bill' : 'Add Bill' }}
+          </h2>
+          <div class="flex flex-col gap-3">
+            <div>
+              <label class="text-xs text-gray-500 uppercase tracking-wide mb-1 block">Name</label>
+              <input
+                v-model="form.name"
+                type="text"
+                placeholder="Netflix, Rent…"
+                class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
+              />
+            </div>
+            <div>
+              <label class="text-xs text-gray-500 uppercase tracking-wide mb-1 block">Amount</label>
+              <input
+                v-model="form.amount"
+                type="number"
+                step="0.01"
+                min="0"
+                placeholder="0.00"
+                class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
+              />
+            </div>
+            <div>
+              <label class="text-xs text-gray-500 uppercase tracking-wide mb-1 block"
+                >Due Date</label
+              >
+              <input
+                v-model="form.dueDate"
+                type="date"
+                class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
+              />
+            </div>
+          </div>
+          <div class="flex gap-2 mt-5">
+            <button
+              @click="showModal = false"
+              class="flex-1 border border-gray-200 text-gray-600 text-sm font-medium py-2 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              @click="submitForm"
+              class="flex-1 bg-gray-900 text-white text-sm font-medium py-2 rounded-lg hover:bg-gray-700 transition-colors"
+            >
+              {{ editingBill ? 'Save' : 'Add' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>
-<!-- Bills Page → this one basically wants a sorted table or card list. A simple sort by due date ascending is probably the most useful default. -->

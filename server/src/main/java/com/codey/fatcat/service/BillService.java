@@ -46,8 +46,7 @@ public class BillService {
     }
 
     public Bill createBill(BillDTO bill) {
-        SecurityUtils.validateUserAccess(bill.getUserId(), userRepository);
-        User user = userRepository.findById(bill.getUserId()).orElseThrow(() -> new UnauthorizedException("User not found"));
+        User user = SecurityUtils.getCurrentUser(userRepository);
         Bill newBill = new Bill();
         newBill.setUser(user);
         newBill.setName(bill.getName());
