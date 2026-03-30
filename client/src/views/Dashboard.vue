@@ -36,7 +36,6 @@ onMounted(async () => {
     <div class="flex gap-3 mb-6 flex-wrap justify-center">
       <RouterLink to="/accounts" class="text-sm font-medium underline underline-offset-4">Accounts</RouterLink>
       <RouterLink to="/bills" class="text-sm font-medium underline underline-offset-4">Bills</RouterLink>
-      <RouterLink to="/transactions" class="text-sm font-medium underline underline-offset-4">Transactions</RouterLink>
     </div>
 
     <div class="grid grid-cols-2 gap-4 text-center">
