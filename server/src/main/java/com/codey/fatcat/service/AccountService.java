@@ -40,9 +40,7 @@ public class AccountService {
   }
 
   public Account createAccount(AccountDTO account) {
-    SecurityUtils.validateUserAccess(account.getUserId(), userRepository);
-    User user = userRepository.findById(account.getUserId())
-        .orElseThrow(() -> new ResourceNotFoundException("User with id: " + account.getUserId() + " not found"));
+    User user = SecurityUtils.getCurrentUser(userRepository);
     Account newAccount = new Account();
     newAccount.setAccountType(account.getAccountType());
     newAccount.setBalance(account.getBalance());
