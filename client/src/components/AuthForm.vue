@@ -15,21 +15,13 @@ const { login } = useAuth()
 const router = useRouter()
 
 const handleSubmit = async () => {
-  if (props.isRegister) {
-    await api('/users/register', {
-      method: 'POST',
-      body: JSON.stringify({ name: name.value, email: email.value, password: password.value }),
-    })
-    router.push('/login')
-  } else {
-    const res = await api('/users/login', {
-      method: 'POST',
-      body: JSON.stringify({ email: email.value, password: password.value }),
-    })
-    const token = await res.text()
-    login(token)
-    router.push('/dashboard')
-  }
+  const res = await api(props.isRegister ? '/users/register' : '/users/login', {
+    method: 'POST',
+    body: JSON.stringify({ email: email.value, password: password.value }),
+  })
+  const token = await res.text()
+  login(token)
+  router.push('/dashboard')
 }
 </script>
 
