@@ -6,9 +6,9 @@ TRUNCATE TABLE users;
 SET FOREIGN_KEY_CHECKS = 1;
 
 -- User (password is "password123" BCrypt encoded)
-INSERT INTO users (id, created_at, updated_at, name, email, password, role) VALUES
+INSERT INTO users (id, created_at, updated_at, email, password, role) VALUES
     (UNHEX(REPLACE('a1b2c3d4-0000-0000-0000-000000000001', '-', '')), NOW(), NOW(),
-     'Codey', 'codey@fatcat.com',
+      'codey@fatcat.com',
      '$2a$10$rDwAw4naUSG3bdIKnwkHCu/siv2U3JXChkhR02UEcCwBUGNUrytPC',
      'ADMIN');
 
