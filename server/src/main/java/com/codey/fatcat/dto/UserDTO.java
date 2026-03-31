@@ -16,7 +16,6 @@ import java.util.UUID;
 public class UserDTO {
 
   private UUID id;
-  private String name;
   private String email;
   private Set<Account> accounts;
 
