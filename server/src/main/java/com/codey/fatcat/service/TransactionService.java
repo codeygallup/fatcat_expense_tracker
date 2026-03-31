@@ -51,6 +51,11 @@ public class TransactionService {
     return transaction;
   }
 
+  public List<Transaction> getTransactionsByAccount(UUID accountId) {
+        SecurityUtils.validateAccountAccess(accountId, accountRepository);
+        return transactionRepository.findAllByAccount_Id(accountId, Pageable.unpaged()).getContent();
+  }
+
   public Page<Transaction> getRecentTransactions() {
       User currentUser = SecurityUtils.getCurrentUser(userRepository);
       Pageable pageable = PageRequest.of(0, 10, Sort.by("date").descending());
