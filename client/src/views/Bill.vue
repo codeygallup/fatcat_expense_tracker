@@ -158,7 +158,7 @@ onMounted(fetchBills)
           <span class="text-xs text-gray-400 mt-0.5 block">
             Due
             {{
-              new Date(bill.dueDate).toLocaleDateString('en-US', {
+              new Date(bill.dueDate + 'T00:00:00').toLocaleDateString('en-US', {
                 month: 'short',
                 day: 'numeric',
                 year: 'numeric',

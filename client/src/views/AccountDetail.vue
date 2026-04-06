@@ -7,14 +7,13 @@ import api from '@/api/index'
 type AccountType = 'CHECKING' | 'SAVINGS' | 'CREDIT_CARD'
 type TransactionType = 'DEPOSIT' | 'WITHDRAWAL' | 'TRANSFER'
 type TransactionCategory =
-  | 'FOOD'
-  | 'TRANSPORT'
+  | 'GROCERIES'
+  | 'DINING_OUT'
+  | 'HOUSING'
+  | 'TRANSPORTATION'
+  | 'BILLS_AND_SUBSCRIPTIONS'
   | 'ENTERTAINMENT'
-  | 'UTILITIES'
-  | 'HEALTH'
-  | 'SHOPPING'
-  | 'RENT'
-  | 'OTHER'
+  | 'MISCELLANEOUS'
 
 interface Account {
   id: string
@@ -52,19 +51,21 @@ const editingTx = ref<Transaction | null>(null)
 const form = ref<TransactionForm>({
   merchant: '',
   amount: 0,
-  date: new Date().toISOString().split('T')[0],
+  date: new Date().toISOString().split('T')[0] ?? '',
   transactionType: 'WITHDRAWAL',
-  category: 'OTHER',
+  category: 'MISCELLANEOUS',
   reimbursable: false,
 })
 
 const CATEGORIES: TransactionCategory[] = [
-  'FOOD', 'TRANSPORT', 'ENTERTAINMENT', 'UTILITIES', 'HEALTH', 'SHOPPING', 'RENT', 'OTHER',
+  'GROCERIES', 'DINING_OUT', 'HOUSING', 'TRANSPORTATION',
+  'BILLS_AND_SUBSCRIPTIONS', 'ENTERTAINMENT', 'MISCELLANEOUS',
 ]
+
 const TRANSACTION_TYPES: TransactionType[] = ['WITHDRAWAL', 'DEPOSIT', 'TRANSFER']
 
 const categoryLabel = (c: TransactionCategory) =>
-  c.charAt(0) + c.slice(1).toLowerCase()
+  c.replace(/_/g, ' ').toLowerCase().replace(/^\w/, ch => ch.toUpperCase())
 
 const typeLabel = (t: TransactionType) =>
   t.charAt(0) + t.slice(1).toLowerCase()
@@ -85,12 +86,12 @@ const spendingByCategory = computed(() => {
 
 const donutSeries = computed(() => Object.values(spendingByCategory.value))
 const donutLabels = computed(() =>
-  Object.keys(spendingByCategory.value).map(categoryLabel)
+  Object.keys(spendingByCategory.value).map(c => categoryLabel(c as TransactionCategory))
 )
 const donutOptions = computed(() => ({
-  chart: { type: 'donut' },
+  chart: { type: 'donut' as const },
   labels: donutLabels.value,
-  legend: { position: 'bottom' },
+  legend: { position: 'bottom' as const },
   dataLabels: { enabled: false },
   plotOptions: { pie: { donut: { size: '65%' } } },
   colors: ['#6366f1','#f59e0b','#10b981','#3b82f6','#ef4444','#8b5cf6','#ec4899','#94a3b8'],
@@ -116,9 +117,9 @@ function openAdd() {
   form.value = {
     merchant: '',
     amount: 0,
-    date: new Date().toISOString().split('T')[0],
+    date: new Date().toISOString().split('T')[0] ?? '',
     transactionType: 'WITHDRAWAL',
-    category: 'OTHER',
+    category: 'MISCELLANEOUS',
     reimbursable: false,
   }
   showModal.value = true
@@ -206,7 +207,7 @@ onMounted(fetchAll)
         <div class="flex-1 min-w-0">
           <p class="font-medium text-gray-900 truncate">{{ tx.merchant }}</p>
           <p class="text-xs text-gray-400">
-            {{ categoryLabel(tx.category) }} · {{ new Date(tx.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) }}
+            {{ categoryLabel(tx.category) }} · {{ new Date(tx.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) }}
           </p>
         </div>
         <span class="text-base font-semibold shrink-0" :class="tx.transactionType === 'DEPOSIT' ? 'text-green-600' : 'text-gray-900'">
