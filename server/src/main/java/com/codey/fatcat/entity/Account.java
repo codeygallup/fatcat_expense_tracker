@@ -41,6 +41,5 @@ public class Account extends BaseEntity {
   private AccountType accountType;
 
   @Column(nullable = false)
-  @PositiveOrZero
   private BigDecimal balance;
 }
