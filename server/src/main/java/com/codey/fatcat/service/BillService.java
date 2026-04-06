@@ -42,7 +42,10 @@ public class BillService {
     public List<Bill> getUpcomingBills() {
         User currentUser = SecurityUtils.getCurrentUser(userRepository);
         LocalDate today = LocalDate.now();
-        return billRepository.findAllByUserIdAndDueDateBetween(currentUser.getId(), today, today.plusDays(14));
+        return billRepository.findUpcomingOrUnpaid(
+                currentUser.getId(), today, today.plusDays(14),
+                List.of(BillStatus.UNPAID, BillStatus.OVERDUE)
+        );
     }
 
     public Bill createBill(BillDTO bill) {
@@ -67,7 +70,9 @@ public class BillService {
         oldBill.setDueDate(bill.getDueDate());
         oldBill.setRecurring(bill.isRecurring());
         oldBill.setFrequency(bill.getFrequency());
-        oldBill.setStatus(bill.getStatus());
+        if (oldBill.getStatus() != BillStatus.PAID) {
+            oldBill.setStatus(bill.getDueDate().isBefore(LocalDate.now()) ? BillStatus.OVERDUE : BillStatus.UNPAID);
+        }
         return billRepository.save(oldBill);
     }
 

@@ -15,7 +15,7 @@ import java.util.function.Function;
 public class DTOConverter {
 
     public static UserDTO convertToDTO(User user) {
-        return new UserDTO(user.getId(), user.getName(), user.getEmail(), user.getAccounts());
+        return new UserDTO(user.getId(), user.getEmail(), user.getAccounts());
     }
 
     public static AccountDTO convertToDTO(Account account) {

@@ -42,9 +42,6 @@ public class User extends BaseEntity implements UserDetails {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Bill> bills;
 
-    @Column(nullable = false)
-    private String name;
-
     @Column(unique = true, nullable = false)
     private String email;
 
