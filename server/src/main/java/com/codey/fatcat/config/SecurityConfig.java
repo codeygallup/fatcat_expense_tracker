@@ -26,86 +26,78 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 @EnableWebSecurity
 public class SecurityConfig {
 
-  private final CustomUserDetailsService customUserDetailsService;
-  private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
-  private final CustomAccessDeniedHandler customAccessDeniedHandler;
+    private final CustomUserDetailsService customUserDetailsService;
+    private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
+    private final CustomAccessDeniedHandler customAccessDeniedHandler;
 
-  public SecurityConfig(CustomUserDetailsService customUserDetailsService,
-                        CustomAuthenticationEntryPoint customAuthenticationEntryPoint,
-                        CustomAccessDeniedHandler customAccessDeniedHandler) {
-    this.customUserDetailsService = customUserDetailsService;
-    this.customAuthenticationEntryPoint = customAuthenticationEntryPoint;
-    this.customAccessDeniedHandler = customAccessDeniedHandler;
-  }
+    public SecurityConfig(CustomUserDetailsService customUserDetailsService,
+                          CustomAuthenticationEntryPoint customAuthenticationEntryPoint,
+                          CustomAccessDeniedHandler customAccessDeniedHandler) {
+        this.customUserDetailsService = customUserDetailsService;
+        this.customAuthenticationEntryPoint = customAuthenticationEntryPoint;
+        this.customAccessDeniedHandler = customAccessDeniedHandler;
+    }
 
-  @Bean
-  public PasswordEncoder passwordEncoder() {
-    return new BCryptPasswordEncoder();
-  }
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
 
-  @Bean
-  public CorsConfigurationSource corsConfigurationSource() {
-    CorsConfiguration configuration = new CorsConfiguration();
-    configuration.setAllowCredentials(true);
-    configuration.addAllowedOrigin("http://localhost:5173");
-    configuration.addAllowedHeader("*");
-    configuration.addAllowedMethod("*");
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowCredentials(true);
+        configuration.addAllowedOrigin("http://localhost:5173");
+        configuration.addAllowedHeader("*");
+        configuration.addAllowedMethod("*");
 
-    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-    source.registerCorsConfiguration("/**", configuration);
-    return source;
-  }
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
 
-  @Bean
-  public SecurityFilterChain securityFilterChain(HttpSecurity http,
-                                                 JwtAuthenticationFilter jwtAuthenticationFilter) throws Exception {
-    return http
-        .csrf(AbstractHttpConfigurer::disable)
-        .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-        .exceptionHandling(handling -> handling
-            .authenticationEntryPoint(customAuthenticationEntryPoint)
-            .accessDeniedHandler(customAccessDeniedHandler))
-        .authorizeHttpRequests((authorize) -> authorize
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http,
+                                                   JwtAuthenticationFilter jwtAuthenticationFilter) throws Exception {
+        return http
+                .csrf(AbstractHttpConfigurer::disable)
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .exceptionHandling(handling -> handling
+                        .authenticationEntryPoint(customAuthenticationEntryPoint)
+                        .accessDeniedHandler(customAccessDeniedHandler))
+                .authorizeHttpRequests((authorize) -> authorize
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        // Public endpoints
                         .requestMatchers(HttpMethod.POST, "/users/register").permitAll()
-                                   .requestMatchers(HttpMethod.POST, "/users/login").permitAll()
-                                   .requestMatchers(HttpMethod.POST, "/authenticate").permitAll()
-//
-                                   .requestMatchers("/accounts/**").permitAll()
-                                   .requestMatchers("/transactions/**").permitAll()
-//            .requestMatchers("/api/users/register", "/api/users/login").permitAll()
-//            // Public endpoints
-//                                   .requestMatchers(HttpMethod.POST, "/user/register").permitAll()
-//                                   .requestMatchers(HttpMethod.POST, "/user/login").permitAll()
-//            // Admin only endpoints
-//                                   .requestMatchers(HttpMethod.PATCH, "/users/*/role").hasRole("ADMIN")
-//                                   .requestMatchers(HttpMethod.GET, "/users").hasRole("ADMIN")
-//            // Protected endpoints with authentication
-//                                   .requestMatchers("/accounts/**").authenticated()
-//                                   .requestMatchers("/transactions/**").authenticated()
-//                                   .requestMatchers("/users/**").authenticated()
-            // Default to authenticated
-                                   .anyRequest().authenticated()
-        )
-        .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-        .logout(logout -> logout
-            .logoutUrl("/logout")
-            .logoutSuccessUrl("/home")
-            .invalidateHttpSession(true))
-        .httpBasic(Customizer.withDefaults())
-        .build();
-  }
+                        .requestMatchers(HttpMethod.POST, "/users/login").permitAll()
+                        // Admin only endpoints
+                        .requestMatchers(HttpMethod.PATCH, "/users/*/role").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/users").hasRole("ADMIN")
+                        // Protected endpoints with authentication
+                        .requestMatchers("/accounts/**").authenticated()
+                        .requestMatchers("/transactions/**").authenticated()
+                        // Default to authenticated
+                        .anyRequest().authenticated()
+                )
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .logout(logout -> logout
+                        .logoutUrl("/logout")
+                        .logoutSuccessUrl("/home")
+                        .invalidateHttpSession(true))
+                .httpBasic(Customizer.withDefaults())
+                .build();
+    }
 
-  @Bean
-  public AuthenticationProvider authenticationProvider() {
-    DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
-    provider.setUserDetailsService(customUserDetailsService);
-    provider.setPasswordEncoder(passwordEncoder());
-    return provider;
-  }
+    @Bean
+    public AuthenticationProvider authenticationProvider() {
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+        provider.setUserDetailsService(customUserDetailsService);
+        provider.setPasswordEncoder(passwordEncoder());
+        return provider;
+    }
 
-  @Bean
-  public AuthenticationManager authenticationManager() {
-    return new ProviderManager(authenticationProvider());
-  }
+    @Bean
+    public AuthenticationManager authenticationManager() {
+        return new ProviderManager(authenticationProvider());
+    }
 }

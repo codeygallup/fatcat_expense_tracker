@@ -15,21 +15,13 @@ const { login } = useAuth()
 const router = useRouter()
 
 const handleSubmit = async () => {
-  if (props.isRegister) {
-    await api('/users/register', {
-      method: 'POST',
-      body: JSON.stringify({ name: name.value, email: email.value, password: password.value }),
-    })
-    router.push('/login')
-  } else {
-    const res = await api('/users/login', {
-      method: 'POST',
-      body: JSON.stringify({ email: email.value, password: password.value }),
-    })
-    const token = await res.text()
-    login(token)
-    router.push('/dashboard')
-  }
+  const res = await api(props.isRegister ? '/users/register' : '/users/login', {
+    method: 'POST',
+    body: JSON.stringify({ email: email.value, password: password.value }),
+  })
+  const token = await res.text()
+  login(token)
+  router.push('/dashboard')
 }
 </script>
 
@@ -37,16 +29,6 @@ const handleSubmit = async () => {
   <div class="flex flex-col items-center justify-center p-8 flex-1">
     <h2 class="text-2xl font-bold mb-6">{{ isRegister ? 'Register' : 'Login' }}</h2>
     <form @submit.prevent="handleSubmit" class="w-full max-w-sm bg-white rounded-lg shadow-md p-6">
-      <div v-if="isRegister" class="mb-4">
-        <label class="block text-gray-700 text-sm font-bold mb-2" for="username">Username</label>
-        <input
-          class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-          v-model="name"
-          id="username"
-          type="text"
-          placeholder="Enter your username"
-        />
-      </div>
       <div class="mb-4">
         <label class="block text-gray-700 text-sm font-bold mb-2" for="email">Email</label>
         <input
