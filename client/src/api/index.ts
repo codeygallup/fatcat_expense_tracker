@@ -1,17 +1,19 @@
 const BASE_URL = 'http://localhost:8080/api'
 
-export const api = (path: string, options?: RequestInit) => {
+export const api = async (path: string, options?: RequestInit) => {
   const token = localStorage.getItem('token')
-  return fetch(`${BASE_URL}${path}`, {
+  const res = await fetch(`${BASE_URL}${path}`, {
     headers: {
       'Content-Type': 'application/json',
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
     ...options,
-  }).then((res) => {
-    if (!res.ok) throw new Error(`API error: ${res.status} ${res.statusText}`)
-    return res
   })
+  if (!res.ok) {
+    const body = await res.json().catch(() => null)
+    throw new Error(body?.message ?? `API error: ${res.status} ${res.statusText}`)
+  }
+  return res
 }
 
 export default api
