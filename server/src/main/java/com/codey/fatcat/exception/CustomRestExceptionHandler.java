@@ -3,6 +3,7 @@ package com.codey.fatcat.exception;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.ServletWebRequest;
@@ -25,6 +26,32 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
     );
 
     return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+  }
+
+  @ExceptionHandler(BadCredentialsException.class)
+  public ResponseEntity<CustomErrorResponse> handleBadCredentialsException(BadCredentialsException exc,
+                                                                           WebRequest request) {
+    CustomErrorResponse errorResponse = buildErrorResponse(
+            HttpStatus.UNAUTHORIZED,
+            exc.getMessage(),
+            "Bad credentials",
+            request
+    );
+
+    return new ResponseEntity<>(errorResponse, HttpStatus.UNAUTHORIZED);
+  }
+
+  @ExceptionHandler(EmailAlreadyInUseException.class)
+  public ResponseEntity<CustomErrorResponse> handleEmailAlreadyInUseException(EmailAlreadyInUseException exc,
+                                                                           WebRequest request) {
+    CustomErrorResponse errorResponse = buildErrorResponse(
+            HttpStatus.BAD_REQUEST,
+            exc.getMessage(),
+            "Email already in use",
+            request
+    );
+
+    return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
   }
 
   @ExceptionHandler(UnauthorizedException.class)

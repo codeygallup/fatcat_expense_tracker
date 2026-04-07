@@ -6,7 +6,6 @@ import { useAuth } from '@/composables/useAuth'
 
 const props = defineProps<{ isRegister?: boolean }>()
 
-const name = ref('')
 const email = ref('')
 const password = ref('')
 
@@ -14,14 +13,21 @@ const { login } = useAuth()
 
 const router = useRouter()
 
+const error = ref<string | null>(null)
+
 const handleSubmit = async () => {
-  const res = await api(props.isRegister ? '/users/register' : '/users/login', {
-    method: 'POST',
-    body: JSON.stringify({ email: email.value, password: password.value }),
-  })
-  const token = await res.text()
-  login(token)
-  router.push('/dashboard')
+  error.value = null
+  try {
+    const res = await api(props.isRegister ? '/users/register' : '/users/login', {
+      method: 'POST',
+      body: JSON.stringify({ email: email.value, password: password.value }),
+    })
+    const token = await res.text()
+    login(token)
+    router.push('/dashboard')
+  } catch (err) {
+    error.value = (err as Error).message
+  }
 }
 </script>
 
@@ -50,6 +56,7 @@ const handleSubmit = async () => {
         />
       </div>
       <div class="flex items-center justify-between">
+        <p v-if="error" class="text-sm text-red-500 mb-3">{{ error }}</p>
         <button
           class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
           type="submit"
