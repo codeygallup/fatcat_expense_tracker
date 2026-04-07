@@ -3,6 +3,7 @@ package com.codey.fatcat.service;
 import com.codey.fatcat.dto.RegisterRecord;
 import com.codey.fatcat.entity.User;
 import com.codey.fatcat.enums.Role;
+import com.codey.fatcat.exception.EmailAlreadyInUseException;
 import com.codey.fatcat.exception.ResourceNotFoundException;
 import com.codey.fatcat.repository.UserRepository;
 import com.codey.fatcat.utils.SecurityUtils;
@@ -26,6 +27,9 @@ public class UserService {
   }
 
   public void registerUser(RegisterRecord request) {
+    if (userRepository.existsByEmail(request.email())) {
+      throw new EmailAlreadyInUseException("Email is already in use");
+    }
     User user = new User();
     user.setEmail(request.email());
     user.setPassword(passwordEncoder.encode(request.password()));
