@@ -169,6 +169,16 @@ onMounted(fetchAll)
 <template>
   <div class="p-4 max-w-2xl mx-auto pb-24 sm:pb-4">
 
+    <RouterLink
+      to="/accounts"
+      class="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4 transition-colors"
+    >
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+      </svg>
+      Back to Accounts
+    </RouterLink>
+
     <!-- Account header -->
     <div v-if="account" class="bg-white border border-gray-200 rounded-2xl p-6 mb-4 flex items-center gap-4">
       <span class="text-3xl">{{ typeIcon(account.accountType) }}</span>
