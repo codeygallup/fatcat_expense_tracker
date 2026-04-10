@@ -49,6 +49,7 @@ const transactions = ref<Transaction[]>([])
 const showModal = ref(false)
 const showChart = ref(true)
 const chartType = ref<'time' | 'category'>('time')
+const timeRange = ref<'weekly' | 'monthly'>('weekly')
 const editingTx = ref<Transaction | null>(null)
 const form = ref<TransactionForm>({
   merchant: '',
@@ -79,27 +80,59 @@ const typeIcon = (type: AccountType) =>
 const spendingByDate = computed(() => {
   const map: Record<string, number> = {}
   const dates: string[] = []
-  transactions.value
+  const txs = transactions.value
     .filter(tx => tx.transactionType !== 'DEPOSIT')
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-    .forEach(tx => {
-      map[tx.date] = (map[tx.date] ?? 0) + tx.amount
-      if (!dates.includes(tx.date)) dates.push(tx.date)
+
+  if (timeRange.value === 'weekly') {
+    txs.forEach(tx => {
+      const date = new Date(tx.date + 'T00:00:00')
+      const weekStart = new Date(date)
+      weekStart.setDate(date.getDate() - date.getDay())
+      const weekKey = weekStart.toISOString().split('T')[0] || ''
+      if (weekKey) {
+        map[weekKey] = (map[weekKey] ?? 0) + tx.amount
+        if (!dates.includes(weekKey)) dates.push(weekKey)
+      }
     })
-  return { dates, amounts: dates.map(d => map[d]) }
+  } else {
+    txs.forEach(tx => {
+      const date = new Date(tx.date + 'T00:00:00')
+      const monthKey = date.toISOString().slice(0, 7)
+      if (monthKey) {
+        map[monthKey] = (map[monthKey] ?? 0) + tx.amount
+        if (!dates.includes(monthKey)) dates.push(monthKey)
+      }
+    })
+  }
+
+  dates.sort()
+  return { dates, amounts: dates.map(d => Math.round((map[d] ?? 0) * 100) / 100) }
 })
 
-const lineOptions = computed(() => ({
-  chart: { type: 'line' as const, zoom: { enabled: true } },
-  xaxis: {
-    categories: spendingByDate.value.dates.map(d => new Date(d + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })),
-  },
-  yaxis: {
-    title: { text: 'Amount ($)' },
-  },
-  stroke: { curve: 'smooth' as const },
-  fill: { type: 'gradient' as const },
-}))
+const lineOptions = computed(() => {
+  const categoryLabels = spendingByDate.value.dates.map(d => {
+    if (timeRange.value === 'weekly') {
+      const date = new Date(d + 'T00:00:00')
+      const weekEnd = new Date(date)
+      weekEnd.setDate(date.getDate() + 6)
+      return `${date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${weekEnd.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`
+    } else {
+      return new Date(d + '-01T00:00:00').toLocaleDateString('en-US', { month: 'short', year: '2-digit' })
+    }
+  })
+  return {
+    chart: { type: 'line' as const, zoom: { enabled: true } },
+    xaxis: {
+      categories: categoryLabels,
+    },
+    yaxis: {
+      title: { text: 'Amount ($)' },
+    },
+    stroke: { curve: 'smooth' as const },
+    fill: { type: 'gradient' as const },
+  }
+})
 const lineSeries = computed(() => [{
   name: 'Spending',
   data: spendingByDate.value.amounts,
@@ -250,18 +283,44 @@ onMounted(fetchAll)
             By Category
           </button>
         </div>
-        <button
-          @click="showChart = !showChart"
-          class="text-gray-400 hover:text-gray-600 transition-colors"
-          :title="showChart ? 'Collapse' : 'Expand'"
-        >
-          <svg v-if="showChart" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7" />
-          </svg>
-          <svg v-else xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
-          </svg>
-        </button>
+        <div class="flex items-center gap-3">
+          <div v-if="chartType === 'time'" class="flex gap-2 border-l pl-3">
+            <button
+              @click="timeRange = 'weekly'"
+              :class="[
+                'text-xs font-medium px-2 py-1 rounded transition-colors',
+                timeRange === 'weekly'
+                  ? 'bg-gray-200 text-gray-900'
+                  : 'text-gray-500 hover:text-gray-700'
+              ]"
+            >
+              Weekly
+            </button>
+            <button
+              @click="timeRange = 'monthly'"
+              :class="[
+                'text-xs font-medium px-2 py-1 rounded transition-colors',
+                timeRange === 'monthly'
+                  ? 'bg-gray-200 text-gray-900'
+                  : 'text-gray-500 hover:text-gray-700'
+              ]"
+            >
+              Monthly
+            </button>
+          </div>
+          <button
+            @click="showChart = !showChart"
+            class="text-gray-400 hover:text-gray-600 transition-colors"
+            :title="showChart ? 'Collapse' : 'Expand'"
+          >
+            <svg v-if="showChart" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7" />
+            </svg>
+            <svg v-else xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+        </div>
       </div>
       <VueApexCharts v-if="showChart && chartType === 'time'" type="line" height="260" :options="lineOptions" :series="lineSeries" />
       <VueApexCharts v-if="showChart && chartType === 'category'" type="donut" height="260" :options="donutOptions" :series="donutSeries" />
