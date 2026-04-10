@@ -47,6 +47,9 @@ const accountId = route.params.id as string
 const account = ref<Account | null>(null)
 const transactions = ref<Transaction[]>([])
 const showModal = ref(false)
+const showChart = ref(true)
+const chartType = ref<'time' | 'category'>('time')
+const timeRange = ref<'weekly' | 'monthly'>('weekly')
 const editingTx = ref<Transaction | null>(null)
 const form = ref<TransactionForm>({
   merchant: '',
@@ -72,6 +75,68 @@ const typeLabel = (t: TransactionType) =>
 
 const typeIcon = (type: AccountType) =>
   ({ CHECKING: '🏦', SAVINGS: '🐖', CREDIT_CARD: '💳' })[type]
+
+// Line chart — spending by date (withdrawals only)
+const spendingByDate = computed(() => {
+  const map: Record<string, number> = {}
+  const dates: string[] = []
+  const txs = transactions.value
+    .filter(tx => tx.transactionType !== 'DEPOSIT')
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+
+  if (timeRange.value === 'weekly') {
+    txs.forEach(tx => {
+      const date = new Date(tx.date + 'T00:00:00')
+      const weekStart = new Date(date)
+      weekStart.setDate(date.getDate() - date.getDay())
+      const weekKey = weekStart.toISOString().split('T')[0] || ''
+      if (weekKey) {
+        map[weekKey] = (map[weekKey] ?? 0) + tx.amount
+        if (!dates.includes(weekKey)) dates.push(weekKey)
+      }
+    })
+  } else {
+    txs.forEach(tx => {
+      const date = new Date(tx.date + 'T00:00:00')
+      const monthKey = date.toISOString().slice(0, 7)
+      if (monthKey) {
+        map[monthKey] = (map[monthKey] ?? 0) + tx.amount
+        if (!dates.includes(monthKey)) dates.push(monthKey)
+      }
+    })
+  }
+
+  dates.sort()
+  return { dates, amounts: dates.map(d => Math.round((map[d] ?? 0) * 100) / 100) }
+})
+
+const lineOptions = computed(() => {
+  const categoryLabels = spendingByDate.value.dates.map(d => {
+    if (timeRange.value === 'weekly') {
+      const date = new Date(d + 'T00:00:00')
+      const weekEnd = new Date(date)
+      weekEnd.setDate(date.getDate() + 6)
+      return `${date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${weekEnd.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`
+    } else {
+      return new Date(d + '-01T00:00:00').toLocaleDateString('en-US', { month: 'short', year: '2-digit' })
+    }
+  })
+  return {
+    chart: { type: 'line' as const, zoom: { enabled: true } },
+    xaxis: {
+      categories: categoryLabels,
+    },
+    yaxis: {
+      title: { text: 'Amount ($)' },
+    },
+    stroke: { curve: 'smooth' as const },
+    fill: { type: 'gradient' as const },
+  }
+})
+const lineSeries = computed(() => [{
+  name: 'Spending',
+  data: spendingByDate.value.amounts,
+}])
 
 // Donut — spending by category (withdrawals only)
 const spendingByCategory = computed(() => {
@@ -191,10 +256,74 @@ onMounted(fetchAll)
       </span>
     </div>
 
-    <!-- Donut chart -->
+    <!-- Spending charts -->
     <div v-if="donutSeries.length" class="bg-white border border-gray-200 rounded-2xl p-6 mb-4">
-      <p class="text-xs text-gray-500 uppercase tracking-wide mb-3">Spending by Category</p>
-      <VueApexCharts type="donut" height="260" :options="donutOptions" :series="donutSeries" />
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex gap-2">
+          <button
+            @click="chartType = 'time'"
+            :class="[
+              'text-xs font-medium uppercase tracking-wide px-3 py-1.5 rounded transition-colors',
+              chartType === 'time'
+                ? 'bg-gray-900 text-white'
+                : 'text-gray-500 hover:text-gray-700'
+            ]"
+          >
+            Over Time
+          </button>
+          <button
+            @click="chartType = 'category'"
+            :class="[
+              'text-xs font-medium uppercase tracking-wide px-3 py-1.5 rounded transition-colors',
+              chartType === 'category'
+                ? 'bg-gray-900 text-white'
+                : 'text-gray-500 hover:text-gray-700'
+            ]"
+          >
+            By Category
+          </button>
+        </div>
+        <div class="flex items-center gap-3">
+          <div v-if="chartType === 'time'" class="flex gap-2 border-l pl-3">
+            <button
+              @click="timeRange = 'weekly'"
+              :class="[
+                'text-xs font-medium px-2 py-1 rounded transition-colors',
+                timeRange === 'weekly'
+                  ? 'bg-gray-200 text-gray-900'
+                  : 'text-gray-500 hover:text-gray-700'
+              ]"
+            >
+              Weekly
+            </button>
+            <button
+              @click="timeRange = 'monthly'"
+              :class="[
+                'text-xs font-medium px-2 py-1 rounded transition-colors',
+                timeRange === 'monthly'
+                  ? 'bg-gray-200 text-gray-900'
+                  : 'text-gray-500 hover:text-gray-700'
+              ]"
+            >
+              Monthly
+            </button>
+          </div>
+          <button
+            @click="showChart = !showChart"
+            class="text-gray-400 hover:text-gray-600 transition-colors"
+            :title="showChart ? 'Collapse' : 'Expand'"
+          >
+            <svg v-if="showChart" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7" />
+            </svg>
+            <svg v-else xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+        </div>
+      </div>
+      <VueApexCharts v-if="showChart && chartType === 'time'" type="line" height="260" :options="lineOptions" :series="lineSeries" />
+      <VueApexCharts v-if="showChart && chartType === 'category'" type="donut" height="260" :options="donutOptions" :series="donutSeries" />
     </div>
 
     <!-- Transactions list -->
