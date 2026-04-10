@@ -47,7 +47,6 @@ public class Transaction extends BaseEntity {
   private String merchant;
 
   @Enumerated(EnumType.STRING)
-  @Column(nullable = false)
   private TransactionCategory category;
 
   @Column(nullable = false, name = "is_reimbursable")
