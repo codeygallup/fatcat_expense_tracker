@@ -48,6 +48,7 @@ const account = ref<Account | null>(null)
 const transactions = ref<Transaction[]>([])
 const showModal = ref(false)
 const showChart = ref(true)
+const chartType = ref<'time' | 'category'>('time')
 const editingTx = ref<Transaction | null>(null)
 const form = ref<TransactionForm>({
   merchant: '',
@@ -73,6 +74,36 @@ const typeLabel = (t: TransactionType) =>
 
 const typeIcon = (type: AccountType) =>
   ({ CHECKING: '🏦', SAVINGS: '🐖', CREDIT_CARD: '💳' })[type]
+
+// Line chart — spending by date (withdrawals only)
+const spendingByDate = computed(() => {
+  const map: Record<string, number> = {}
+  const dates: string[] = []
+  transactions.value
+    .filter(tx => tx.transactionType !== 'DEPOSIT')
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+    .forEach(tx => {
+      map[tx.date] = (map[tx.date] ?? 0) + tx.amount
+      if (!dates.includes(tx.date)) dates.push(tx.date)
+    })
+  return { dates, amounts: dates.map(d => map[d]) }
+})
+
+const lineOptions = computed(() => ({
+  chart: { type: 'line' as const, zoom: { enabled: true } },
+  xaxis: {
+    categories: spendingByDate.value.dates.map(d => new Date(d + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })),
+  },
+  yaxis: {
+    title: { text: 'Amount ($)' },
+  },
+  stroke: { curve: 'smooth' as const },
+  fill: { type: 'gradient' as const },
+}))
+const lineSeries = computed(() => [{
+  name: 'Spending',
+  data: spendingByDate.value.amounts,
+}])
 
 // Donut — spending by category (withdrawals only)
 const spendingByCategory = computed(() => {
@@ -192,10 +223,33 @@ onMounted(fetchAll)
       </span>
     </div>
 
-    <!-- Donut chart -->
+    <!-- Spending charts -->
     <div v-if="donutSeries.length" class="bg-white border border-gray-200 rounded-2xl p-6 mb-4">
-      <div class="flex items-center justify-between mb-3">
-        <p class="text-xs text-gray-500 uppercase tracking-wide">Spending by Category</p>
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex gap-2">
+          <button
+            @click="chartType = 'time'"
+            :class="[
+              'text-xs font-medium uppercase tracking-wide px-3 py-1.5 rounded transition-colors',
+              chartType === 'time'
+                ? 'bg-gray-900 text-white'
+                : 'text-gray-500 hover:text-gray-700'
+            ]"
+          >
+            Over Time
+          </button>
+          <button
+            @click="chartType = 'category'"
+            :class="[
+              'text-xs font-medium uppercase tracking-wide px-3 py-1.5 rounded transition-colors',
+              chartType === 'category'
+                ? 'bg-gray-900 text-white'
+                : 'text-gray-500 hover:text-gray-700'
+            ]"
+          >
+            By Category
+          </button>
+        </div>
         <button
           @click="showChart = !showChart"
           class="text-gray-400 hover:text-gray-600 transition-colors"
@@ -209,7 +263,8 @@ onMounted(fetchAll)
           </svg>
         </button>
       </div>
-      <VueApexCharts v-if="showChart" type="donut" height="260" :options="donutOptions" :series="donutSeries" />
+      <VueApexCharts v-if="showChart && chartType === 'time'" type="line" height="260" :options="lineOptions" :series="lineSeries" />
+      <VueApexCharts v-if="showChart && chartType === 'category'" type="donut" height="260" :options="donutOptions" :series="donutSeries" />
     </div>
 
     <!-- Transactions list -->
