@@ -47,6 +47,7 @@ const accountId = route.params.id as string
 const account = ref<Account | null>(null)
 const transactions = ref<Transaction[]>([])
 const showModal = ref(false)
+const showChart = ref(true)
 const editingTx = ref<Transaction | null>(null)
 const form = ref<TransactionForm>({
   merchant: '',
@@ -193,8 +194,22 @@ onMounted(fetchAll)
 
     <!-- Donut chart -->
     <div v-if="donutSeries.length" class="bg-white border border-gray-200 rounded-2xl p-6 mb-4">
-      <p class="text-xs text-gray-500 uppercase tracking-wide mb-3">Spending by Category</p>
-      <VueApexCharts type="donut" height="260" :options="donutOptions" :series="donutSeries" />
+      <div class="flex items-center justify-between mb-3">
+        <p class="text-xs text-gray-500 uppercase tracking-wide">Spending by Category</p>
+        <button
+          @click="showChart = !showChart"
+          class="text-gray-400 hover:text-gray-600 transition-colors"
+          :title="showChart ? 'Collapse' : 'Expand'"
+        >
+          <svg v-if="showChart" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7" />
+          </svg>
+          <svg v-else xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+      </div>
+      <VueApexCharts v-if="showChart" type="donut" height="260" :options="donutOptions" :series="donutSeries" />
     </div>
 
     <!-- Transactions list -->
