@@ -56,7 +56,7 @@ onMounted(async () => {
       </RouterLink>
 
       <RouterLink to="/transactions" class="col-span-2 bg-white border border-gray-200 rounded-2xl p-6 hover:shadow-md transition-shadow">
-        <span class="text-xs text-gray-500 uppercase tracking-wide block mb-3">Recent Spending</span>
+        <span class="text-xs text-gray-500 uppercase tracking-wide block mb-3">Recent Activity</span>
         <div class="flex flex-col gap-2 overflow-y-auto max-h-80 sm:max-h-none">
           <div
             v-for="tx in recentTransactions"

@@ -68,7 +68,7 @@ const categoryLabel = (c: TransactionCategory) =>
   c.replace(/_/g, ' ').toLowerCase().replace(/^\w/, ch => ch.toUpperCase())
 
 const typeLabel = (t: TransactionType) =>
-  t.charAt(0) + t.slice(1).toLowerCase()
+  ({ WITHDRAWAL: 'Expense', DEPOSIT: 'Income', TRANSFER: 'Transfer' }[t])
 
 const typeIcon = (type: AccountType) =>
   ({ CHECKING: '🏦', SAVINGS: '🐖', CREDIT_CARD: '💳' })[type]
@@ -283,7 +283,7 @@ onMounted(fetchAll)
                 <option v-for="t in TRANSACTION_TYPES" :key="t" :value="t">{{ typeLabel(t) }}</option>
               </select>
             </div>
-            <div>
+            <div v-if="form.transactionType !== 'DEPOSIT'">
               <label class="text-xs text-gray-500 uppercase tracking-wide mb-1 block">Category</label>
               <select v-model="form.category"
                 class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 bg-white">
