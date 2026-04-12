@@ -21,7 +21,7 @@ const handleLogout = () => {
 
 <template>
   <nav class="bg-gray-800 text-white p-4 sticky top-0 z-50">
-    <div class="container mx-auto flex justify-between items-center">
+    <div class=" mx-auto flex justify-between items-center">
       <RouterLink :to="isLoggedIn ? '/dashboard' : '/'" class="flex items-center space-x-2">
         <img src="../assets/icon.png" alt="Fatcat Icon" class="w-20 h-20 inline-block ml-2" />
         <span>Fatcat</span>
