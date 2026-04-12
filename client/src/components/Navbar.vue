@@ -30,7 +30,6 @@ const handleLogout = () => {
         <template v-if="isLoggedIn">
           <RouterLink to="/accounts">Accounts</RouterLink>
           <RouterLink to="/bills">Bills</RouterLink>
-          <!-- <RouterLink to="/transactions">Spending</RouterLink> -->
           <button @click="logout" class="px-3 py-2 hover:bg-gray-700 rounded">Logout</button>
         </template>
 
@@ -70,22 +69,31 @@ const handleLogout = () => {
 
   <div v-if="isOpen" class="md:hidden bg-gray-800 text-white p-4">
     <template v-if="isLoggedIn">
-      <RouterLink to="/accounts" @click="closeMenu" class="block px-3 py-2 hover:bg-gray-700 rounded"
+      <RouterLink
+        to="/accounts"
+        @click="closeMenu"
+        class="block px-3 py-2 hover:bg-gray-700 rounded"
         >Accounts</RouterLink
       >
-      <RouterLink to="/bills" @click="closeMenu" class="block px-3 py-2 hover:bg-gray-700 rounded">Bills</RouterLink>
-      <!-- <RouterLink to="/transactions" class="block px-3 py-2 hover:bg-gray-700 rounded"
-        >Spending</RouterLink
-      > -->
-      <button @click="handleLogout" class="block w-full text-left px-3 py-2 hover:bg-gray-700 rounded">
+      <RouterLink to="/bills" @click="closeMenu" class="block px-3 py-2 hover:bg-gray-700 rounded"
+        >Bills</RouterLink
+      >
+      <button
+        @click="handleLogout"
+        class="block w-full text-left px-3 py-2 hover:bg-gray-700 rounded"
+      >
         Logout
       </button>
-
     </template>
 
     <template v-else>
-      <RouterLink to="/login" @click="closeMenu" class="block px-3 py-2 hover:bg-gray-700 rounded">Login</RouterLink>
-      <RouterLink to="/register" @click="closeMenu" class="block px-3 py-2 hover:bg-gray-700 rounded"
+      <RouterLink to="/login" @click="closeMenu" class="block px-3 py-2 hover:bg-gray-700 rounded"
+        >Login</RouterLink
+      >
+      <RouterLink
+        to="/register"
+        @click="closeMenu"
+        class="block px-3 py-2 hover:bg-gray-700 rounded"
         >Register</RouterLink
       >
     </template>
