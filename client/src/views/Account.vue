@@ -30,6 +30,9 @@ const typeLabel = (type: AccountType) =>
 
 const typeIcon = (type: AccountType) => ({ CHECKING: '🏦', SAVINGS: '🐖', CREDIT_CARD: '💳' })[type]
 
+const truncateText = (text: string, maxLength = 24) =>
+  text.length > maxLength ? `${text.slice(0, maxLength - 1)}…` : text
+
 async function fetchAccounts() {
   accounts.value = await api('/accounts').then((r) => r.json())
 }
@@ -101,7 +104,7 @@ onMounted(fetchAccounts)
 
         <!-- Info → navigates to detail -->
         <RouterLink :to="`/accounts/${account.id}`" class="flex-1 min-w-0">
-          <p class="font-medium text-gray-900 truncate">{{ account.name }}</p>
+          <p class="font-medium text-gray-900 truncate">{{ truncateText(account.name, 24) }}</p>
           <p class="text-xs text-gray-400">{{ typeLabel(account.accountType) }}</p>
         </RouterLink>
 
