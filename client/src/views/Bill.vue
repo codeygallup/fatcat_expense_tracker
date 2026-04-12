@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import api from '@/api/index'
+import Skeleton from '@/components/Skeleton.vue'
 
 type BillStatus = 'PAID' | 'UNPAID' | 'OVERDUE'
 type FilterTab = 'ALL' | BillStatus
@@ -24,6 +25,7 @@ const activeFilter = ref<FilterTab>('ALL')
 const showModal = ref(false)
 const editingBill = ref<Bill | null>(null)
 const form = ref<BillForm>({ name: '', amount: '', dueDate: '' })
+const loading = ref(true)
 
 const TABS: FilterTab[] = ['ALL', 'UNPAID', 'OVERDUE', 'PAID']
 
@@ -53,7 +55,13 @@ const rowBg = (status: BillStatus) =>
   })[status]
 
 async function fetchBills() {
-  bills.value = await api('/bills').then((r) => r.json())
+  try {
+    bills.value = await api('/bills').then((r) => r.json())
+  } catch (e) {
+    console.error('Failed to fetch bills', e)
+  } finally {
+    loading.value = false
+  }
 }
 
 async function updateStatus(bill: Bill) {
@@ -106,7 +114,7 @@ onMounted(fetchBills)
 </script>
 
 <template>
-  <div class="p-4 max-w-2xl min-w-sm mx-auto pb-24 sm:pb-4">
+  <div class="p-4 mx-auto pb-24 sm:pb-4">
     <div class="flex items-center justify-between mb-4">
       <h1 class="text-xl font-bold text-gray-900">Bills</h1>
       <button
@@ -137,12 +145,16 @@ onMounted(fetchBills)
     </p>
 
     <div class="flex flex-col gap-2">
-      <div
-        v-for="bill in filteredBills"
-        :key="bill.id"
-        class="border rounded-xl p-4 flex items-center gap-3 transition-colors"
-        :class="rowBg(bill.status)"
-      >
+      <div v-if="loading" class="flex flex-col gap-2">
+        <Skeleton v-for="n in 5" :key="n" type="card" />
+      </div>
+      <div v-else class="flex flex-col gap-2">
+        <div
+          v-for="bill in filteredBills"
+          :key="bill.id"
+          class="border rounded-xl p-4 flex items-center gap-3 transition-colors"
+          :class="rowBg(bill.status)"
+        >
         <div class="flex-1 min-w-0">
           <div class="flex items-center gap-2 flex-wrap">
             <span class="font-medium text-gray-900 truncate">{{ bill.name }}</span>
@@ -219,6 +231,7 @@ onMounted(fetchBills)
 
       <div v-if="!filteredBills.length" class="text-sm text-gray-400 text-center py-12">
         No {{ activeFilter === 'ALL' ? '' : tabLabel(activeFilter).toLowerCase() + ' ' }}bills
+      </div>
       </div>
     </div>
 
