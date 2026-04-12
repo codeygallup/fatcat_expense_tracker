@@ -3,6 +3,7 @@ import { computed, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import VueApexCharts from 'vue3-apexcharts'
 import api from '@/api/index'
+import Skeleton from '@/components/Skeleton.vue'
 
 type AccountType = 'CHECKING' | 'SAVINGS' | 'CREDIT_CARD'
 type TransactionType = 'DEPOSIT' | 'WITHDRAWAL' | 'TRANSFER'
@@ -61,6 +62,7 @@ const form = ref<TransactionForm>({
   category: 'MISCELLANEOUS',
   reimbursable: false,
 })
+const loading = ref(true)
 
 const CATEGORIES: TransactionCategory[] = [
   'GROCERIES', 'DINING_OUT', 'HOUSING', 'TRANSPORTATION',
@@ -254,12 +256,18 @@ const donutOptions = computed(() => ({
 }))
 
 async function fetchAll() {
-  const [acct, txs] = await Promise.all([
-    api(`/accounts/${accountId}`).then(r => r.json()),
-    api(`/transactions?accountId=${accountId}`).then(r => r.json()),
-  ])
-  account.value = acct
-  transactions.value = txs
+  try {
+    const [acct, txs] = await Promise.all([
+      api(`/accounts/${accountId}`).then(r => r.json()),
+      api(`/transactions?accountId=${accountId}`).then(r => r.json()),
+    ])
+    account.value = acct
+    transactions.value = txs
+  } catch (e) {
+    console.error('Failed to fetch account details', e)
+  } finally {
+    loading.value = false
+  }
 }
 
 async function deleteTx(id: string) {
@@ -431,6 +439,10 @@ onMounted(fetchAll)
     </div>
 
     <div class="flex flex-col gap-2">
+  <template v-if="loading" class="flex flex-col gap-2">
+    <Skeleton v-for="n in 4" :key="n" type="card" />
+  </template>
+  <template v-else>
       <div
         v-for="tx in transactions"
         :key="tx.id"
@@ -463,6 +475,7 @@ onMounted(fetchAll)
         </div>
       </div>
       <div v-if="!transactions.length" class="text-sm text-gray-400 text-center py-12">No transactions yet</div>
+    </template>
     </div>
 
     <!-- Mobile FAB -->
