@@ -2,6 +2,7 @@
 import { onMounted, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import api from '@/api/index'
+import Skeleton from '@/components/Skeleton.vue'
 
 type AccountType = 'CHECKING' | 'SAVINGS' | 'CREDIT_CARD'
 
@@ -22,6 +23,7 @@ const accounts = ref<Account[]>([])
 const showModal = ref(false)
 const editingAccount = ref<Account | null>(null)
 const form = ref<AccountForm>({ name: '', accountType: 'CHECKING', balance: 0 })
+  const loading = ref(true)
 
 const ACCOUNT_TYPES: AccountType[] = ['CHECKING', 'SAVINGS', 'CREDIT_CARD']
 
@@ -34,7 +36,13 @@ const truncateText = (text: string, maxLength = 24) =>
   text.length > maxLength ? `${text.slice(0, maxLength - 1)}…` : text
 
 async function fetchAccounts() {
-  accounts.value = await api('/accounts').then((r) => r.json())
+  try {
+    accounts.value = await api('/accounts').then((r) => r.json())
+  } catch (e) {
+    console.error('Failed to fetch accounts', e)
+  } finally {
+    loading.value = false
+  }
 }
 
 async function deleteAccount(id: string) {
@@ -94,6 +102,10 @@ onMounted(fetchAccounts)
 
     <!-- Account cards -->
     <div class="flex flex-col gap-3">
+      <div v-if="loading" class="flex flex-col gap-3">
+        <Skeleton v-for="n in 3" :key="n" type="card" />
+      </div>
+      <div v-else>
       <div
         v-for="account in accounts"
         :key="account.id"
@@ -163,6 +175,7 @@ onMounted(fetchAccounts)
             </svg>
           </button>
         </div>
+      </div>
       </div>
 
       <div v-if="!accounts.length" class="text-sm text-gray-400 text-center py-12">
