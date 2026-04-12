@@ -51,6 +51,8 @@ const showChart = ref(true)
 const chartType = ref<'time' | 'category'>('time')
 const timeRange = ref<'weekly' | 'monthly'>('weekly')
 const editingTx = ref<Transaction | null>(null)
+const amountInput = ref('')
+const amountError = ref('')
 const form = ref<TransactionForm>({
   merchant: '',
   amount: 0,
@@ -138,6 +140,95 @@ const lineSeries = computed(() => [{
   data: spendingByDate.value.amounts,
 }])
 
+const sanitizeAmount = (value: string) => {
+  const cleaned = value
+    .replace(/,/g, '')
+    .replace(/[^0-9.]/g, '')
+    .replace(/(\..*)\./g, '$1')
+
+  const [integer = '', decimal] = cleaned.split('.')
+  const trimmedInteger = integer.replace(/^0+(?=\d)/, '') || '0'
+  const trimmedDecimal = decimal !== undefined ? decimal.slice(0, 2) : undefined
+  return trimmedDecimal !== undefined ? `${trimmedInteger}.${trimmedDecimal}` : trimmedInteger
+}
+
+const showAmountError = (message: string) => {
+  amountError.value = message
+  window.clearTimeout((showAmountError as any).timeout)
+  ;(showAmountError as any).timeout = window.setTimeout(() => {
+    amountError.value = ''
+  }, 2500)
+}
+
+const handleAmountInput = (event: InputEvent) => {
+  const target = event.target as HTMLInputElement
+  const raw = target.value
+  const sanitized = sanitizeAmount(raw)
+
+  if (raw !== sanitized) {
+    showAmountError('Only numbers and a decimal point are allowed.')
+  }
+
+  amountInput.value = sanitized
+  form.value.amount = parseFloat(sanitized) || 0
+}
+
+const handleAmountKeydown = (event: KeyboardEvent) => {
+  const allowedKeys = ['Backspace', 'Tab', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Delete', 'Home', 'End']
+  const key = event.key
+  const target = event.target as HTMLInputElement
+
+  if (allowedKeys.includes(key)) {
+    return
+  }
+
+  if (key === '.') {
+    if (target.value.includes('.')) {
+      event.preventDefault()
+      showAmountError('Only one decimal point is allowed.')
+    }
+    return
+  }
+
+  if (!/^[0-9]$/.test(key)) {
+    event.preventDefault()
+    showAmountError('Only digits and a decimal point are allowed.')
+    return
+  }
+
+  const selectionStart = target.selectionStart ?? 0
+  const selectionEnd = target.selectionEnd ?? 0
+  const proposed = target.value.slice(0, selectionStart) + key + target.value.slice(selectionEnd)
+  const decimalIndex = proposed.indexOf('.')
+
+  if (decimalIndex >= 0) {
+    const decimalPart = proposed.slice(decimalIndex + 1)
+    if (decimalPart.length > 2) {
+      event.preventDefault()
+      showAmountError('Only two decimal places are allowed.')
+    }
+  }
+}
+
+const handleAmountPaste = (event: ClipboardEvent) => {
+  const pasted = event.clipboardData?.getData('text/plain') ?? ''
+  if (/[^0-9.]/.test(pasted) || (pasted.match(/\./g) ?? []).length > 1) {
+    event.preventDefault()
+    showAmountError('Only digits and a decimal point are allowed.')
+    return
+  }
+
+  const target = event.target as HTMLInputElement
+  const selectionStart = target.selectionStart ?? 0
+  const selectionEnd = target.selectionEnd ?? 0
+  const proposed = target.value.slice(0, selectionStart) + pasted + target.value.slice(selectionEnd)
+  const decimalIndex = proposed.indexOf('.')
+  if (decimalIndex >= 0 && proposed.slice(decimalIndex + 1).length > 2) {
+    event.preventDefault()
+    showAmountError('Only two decimal places are allowed.')
+  }
+}
+
 // Donut — spending by category (withdrawals only)
 const spendingByCategory = computed(() => {
   const map: Record<string, number> = {}
@@ -187,6 +278,7 @@ function openAdd() {
     category: 'MISCELLANEOUS',
     reimbursable: false,
   }
+  amountInput.value = ''
   showModal.value = true
 }
 
@@ -200,6 +292,7 @@ function openEdit(tx: Transaction) {
     category: tx.category,
     reimbursable: tx.reimbursable,
   }
+  amountInput.value = tx.amount.toString()
   showModal.value = true
 }
 
@@ -207,7 +300,7 @@ async function submitForm() {
   const payload = {
     accountId,
     merchant: form.value.merchant,
-    amount: form.value.amount,
+    amount: parseFloat(amountInput.value) || 0,
     date: form.value.date,
     transactionType: form.value.transactionType,
     category: form.value.category,
@@ -397,8 +490,16 @@ onMounted(fetchAll)
             </div>
             <div>
               <label class="text-xs text-gray-500 uppercase tracking-wide mb-1 block">Amount</label>
-              <input v-model.number="form.amount" type="number" step="0.01" min="0" placeholder="0.00"
-                class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900" />
+              <input
+                :value="amountInput"
+                @input="handleAmountInput"
+                @keydown="handleAmountKeydown"
+                @paste="handleAmountPaste"
+                inputmode="decimal"
+                placeholder="0.00"
+                class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
+              />
+              <p v-if="amountError" class="mt-1 text-xs text-red-500">{{ amountError }}</p>
             </div>
             <div>
               <label class="text-xs text-gray-500 uppercase tracking-wide mb-1 block">Date</label>
