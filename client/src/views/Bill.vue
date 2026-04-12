@@ -56,10 +56,10 @@ async function fetchBills() {
   bills.value = await api('/bills').then((r) => r.json())
 }
 
-async function markPaid(bill: Bill) {
-  if (bill.status === 'PAID') return
-  await api(`/bills/${bill.id}`, { method: 'PATCH' })
-  await fetchBills()
+async function updateStatus(bill: Bill) {
+  const updated: Bill = await api(`/bills/${bill.id}`, { method: 'PATCH' }).then((r) => r.json())
+  const idx = bills.value.findIndex((b) => b.id === bill.id)
+  if (idx !== -1) bills.value[idx] = updated
 }
 
 async function deleteBill(id: string) {
@@ -133,7 +133,7 @@ onMounted(fetchBills)
       </button>
     </div>
     <p class="text-xs text-gray-400 text-center mb-4">
-      Tap a bill's status badge to mark it as paid
+      Tap a bill's status badge to toggle its status
     </p>
 
     <div class="flex flex-col gap-2">
@@ -147,10 +147,10 @@ onMounted(fetchBills)
           <div class="flex items-center gap-2 flex-wrap">
             <span class="font-medium text-gray-900 truncate">{{ bill.name }}</span>
             <span
-              @click="markPaid(bill)"
+              @click="updateStatus(bill)"
               class="text-xs px-2 py-0.5 rounded-full font-medium shrink-0 cursor-pointer select-none"
               :class="statusBadge(bill.status)"
-              :title="bill.status !== 'PAID' ? 'Click to mark paid' : ''"
+              :title="bill.status === 'PAID' ? 'Click to mark unpaid' : 'Click to mark paid'"
             >
               {{ tabLabel(bill.status) }}
             </span>
