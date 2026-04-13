@@ -2,6 +2,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import api from '@/api/index'
+import Skeleton from '@/components/Skeleton.vue'
 
 interface Transaction {
   id: number
@@ -15,6 +16,7 @@ interface Transaction {
 const accounts = ref<{ id: number; balance: number }[]>([])
 const billsDue = ref<{ id: number; name: string; dueDate: string; status: string }[]>([])
 const recentTransactions = ref<Transaction[]>([])
+const loading = ref(true)
 
 const formattedBalance = computed(() => {
   const total = accounts.value.reduce((sum, a) => sum + a.balance, 0)
@@ -25,9 +27,20 @@ const overdueBills = computed(() => billsDue.value.filter(b => b.status === 'OVE
 const hasOverdue = computed(() => overdueBills.value.length > 0)
 
 onMounted(async () => {
-  accounts.value = await api('/accounts').then(r => r.json())
-  billsDue.value = await api('/bills/upcoming').then(r => r.json())
-  recentTransactions.value = await api('/transactions/recent').then(r => r.json())
+  try {
+    const [accountsRes, billsRes, transactionsRes] = await Promise.all([
+      api('/accounts'),
+      api('/bills/upcoming'),
+      api('/transactions/recent'),
+    ])
+    accounts.value = await accountsRes.json()
+    billsDue.value = await billsRes.json()
+    recentTransactions.value = await transactionsRes.json()
+  } catch (e) {
+    console.error('Failed to fetch dashboard data', e)
+  } finally {
+    loading.value = false
+  }
 })
 </script>
 
@@ -37,7 +50,11 @@ onMounted(async () => {
       <RouterLink to="/accounts" class="text-sm font-medium underline underline-offset-4">Accounts</RouterLink>
       <RouterLink to="/bills" class="text-sm font-medium underline underline-offset-4">Bills</RouterLink>
     </div>
-
+    
+    <template v-if="loading" class="mb-6 flex flex-col gap-4">
+        <Skeleton v-for="n in 3" :key="n" type="card" />
+    </template>
+    <template v-else>
     <div class="grid grid-cols-2 gap-4 text-center">
 
       <RouterLink to="/bills" class="bg-white border rounded-2xl p-6 flex flex-col gap-1 hover:shadow-md transition-shadow min-h-40 justify-between flex-1"
@@ -74,7 +91,8 @@ onMounted(async () => {
           <div v-if="!recentTransactions.length" class="text-sm text-gray-400">No recent transactions</div>
         </div>
       </RouterLink>
-
+      
     </div>
+  </template>
   </div>
 </template>
