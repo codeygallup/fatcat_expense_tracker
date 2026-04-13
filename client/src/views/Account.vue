@@ -88,7 +88,7 @@ onMounted(fetchAccounts)
 </script>
 
 <template>
-  <div class="p-4 max-w-2xl mx-auto pb-24 sm:pb-4">
+  <div class="p-4 max-w-2xl md:max-w-full mx-auto md:mx-20 pb-24 sm:pb-4">
     <!-- Header -->
     <div class="flex items-center justify-between mb-4">
       <h1 class="text-xl font-bold text-gray-900">Accounts</h1>

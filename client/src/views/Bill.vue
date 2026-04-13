@@ -114,7 +114,7 @@ onMounted(fetchBills)
 </script>
 
 <template>
-  <div class="p-4 mx-auto pb-24 sm:pb-4">
+  <div class="p-4 mx-auto md:mx-20 pb-24 sm:pb-4">
     <div class="flex items-center justify-between mb-4">
       <h1 class="text-xl font-bold text-gray-900">Bills</h1>
       <button
