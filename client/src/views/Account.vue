@@ -2,6 +2,7 @@
 import { onMounted, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import api from '@/api/index'
+import Skeleton from '@/components/Skeleton.vue'
 
 type AccountType = 'CHECKING' | 'SAVINGS' | 'CREDIT_CARD'
 
@@ -22,6 +23,7 @@ const accounts = ref<Account[]>([])
 const showModal = ref(false)
 const editingAccount = ref<Account | null>(null)
 const form = ref<AccountForm>({ name: '', accountType: 'CHECKING', balance: 0 })
+  const loading = ref(true)
 
 const ACCOUNT_TYPES: AccountType[] = ['CHECKING', 'SAVINGS', 'CREDIT_CARD']
 
@@ -30,8 +32,17 @@ const typeLabel = (type: AccountType) =>
 
 const typeIcon = (type: AccountType) => ({ CHECKING: '🏦', SAVINGS: '🐖', CREDIT_CARD: '💳' })[type]
 
+const truncateText = (text: string, maxLength = 24) =>
+  text.length > maxLength ? `${text.slice(0, maxLength - 1)}…` : text
+
 async function fetchAccounts() {
-  accounts.value = await api('/accounts').then((r) => r.json())
+  try {
+    accounts.value = await api('/accounts').then((r) => r.json())
+  } catch (e) {
+    console.error('Failed to fetch accounts', e)
+  } finally {
+    loading.value = false
+  }
 }
 
 async function deleteAccount(id: string) {
@@ -77,7 +88,7 @@ onMounted(fetchAccounts)
 </script>
 
 <template>
-  <div class="p-4 max-w-2xl mx-auto pb-24 sm:pb-4">
+  <div class="p-4 max-w-2xl md:max-w-full mx-auto md:mx-20 pb-24 sm:pb-4">
     <!-- Header -->
     <div class="flex items-center justify-between mb-4">
       <h1 class="text-xl font-bold text-gray-900">Accounts</h1>
@@ -91,6 +102,10 @@ onMounted(fetchAccounts)
 
     <!-- Account cards -->
     <div class="flex flex-col gap-3">
+      <template v-if="loading" class="flex flex-col gap-3">
+        <Skeleton v-for="n in 3" :key="n" type="card" />
+      </template>
+      <template v-else>
       <div
         v-for="account in accounts"
         :key="account.id"
@@ -101,7 +116,7 @@ onMounted(fetchAccounts)
 
         <!-- Info → navigates to detail -->
         <RouterLink :to="`/accounts/${account.id}`" class="flex-1 min-w-0">
-          <p class="font-medium text-gray-900 truncate">{{ account.name }}</p>
+          <p class="font-medium text-gray-900 truncate">{{ truncateText(account.name, 24) }}</p>
           <p class="text-xs text-gray-400">{{ typeLabel(account.accountType) }}</p>
         </RouterLink>
 
@@ -161,6 +176,7 @@ onMounted(fetchAccounts)
           </button>
         </div>
       </div>
+      </template>
 
       <div v-if="!accounts.length" class="text-sm text-gray-400 text-center py-12">
         No accounts yet

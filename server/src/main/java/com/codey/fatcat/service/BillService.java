@@ -76,10 +76,16 @@ public class BillService {
         return billRepository.save(oldBill);
     }
 
-    public Bill markAsPaid(UUID id) {
+    public Bill updateStatus(UUID id) {
         Bill bill = getBillById(id);
-        bill.setStatus(BillStatus.PAID);
-        bill.setLastPaidDate(LocalDate.now());
+        if (bill.getStatus() == BillStatus.PAID) {
+            bill.setStatus(
+                    bill.getDueDate().isBefore(LocalDate.now()) ? BillStatus.OVERDUE : BillStatus.UNPAID
+            );
+        } else {
+            bill.setStatus(BillStatus.PAID);
+            bill.setLastPaidDate(LocalDate.now());
+        }
         return billRepository.save(bill);
     }
 
