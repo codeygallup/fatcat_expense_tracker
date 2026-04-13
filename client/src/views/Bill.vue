@@ -145,10 +145,10 @@ onMounted(fetchBills)
     </p>
 
     <div class="flex flex-col gap-2">
-      <div v-if="loading" class="flex flex-col gap-2">
+      <template v-if="loading" class="flex flex-col gap-2">
         <Skeleton v-for="n in 5" :key="n" type="card" />
-      </div>
-      <div v-else class="flex flex-col gap-2">
+      </template>
+      <template v-else class="flex flex-col gap-2">
         <div
           v-for="bill in filteredBills"
           :key="bill.id"
@@ -232,7 +232,7 @@ onMounted(fetchBills)
       <div v-if="!filteredBills.length" class="text-sm text-gray-400 text-center py-12">
         No {{ activeFilter === 'ALL' ? '' : tabLabel(activeFilter).toLowerCase() + ' ' }}bills
       </div>
-      </div>
+      </template>
     </div>
 
     <button

@@ -102,10 +102,10 @@ onMounted(fetchAccounts)
 
     <!-- Account cards -->
     <div class="flex flex-col gap-3">
-      <div v-if="loading" class="flex flex-col gap-3">
+      <template v-if="loading" class="flex flex-col gap-3">
         <Skeleton v-for="n in 3" :key="n" type="card" />
-      </div>
-      <div v-else>
+      </template>
+      <template v-else>
       <div
         v-for="account in accounts"
         :key="account.id"
@@ -176,7 +176,7 @@ onMounted(fetchAccounts)
           </button>
         </div>
       </div>
-      </div>
+      </template>
 
       <div v-if="!accounts.length" class="text-sm text-gray-400 text-center py-12">
         No accounts yet
