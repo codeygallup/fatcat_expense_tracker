@@ -53,8 +53,8 @@ public class BillController {
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity<BillDTO> markAsPaid(@PathVariable UUID id) {
-        Bill bill = billService.markAsPaid(id);
+    public ResponseEntity<BillDTO> updateStatus(@PathVariable UUID id) {
+        Bill bill = billService.updateStatus(id);
         return ResponseEntity.ok(DTOConverter.convertToDTO(bill));
     }
 
