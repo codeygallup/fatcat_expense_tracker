@@ -24,7 +24,7 @@ const handleLogout = () => {
     <div class=" mx-auto flex justify-between items-center">
       <RouterLink :to="isLoggedIn ? '/dashboard' : '/'" class="flex items-center space-x-2">
         <img src="../assets/icon.png" alt="Fatcat Icon" class="w-20 h-20 inline-block ml-2" />
-        <span>Fatcat</span>
+        <span class="md:text-3xl">Fatcat</span>
       </RouterLink>
       <div class="hidden md:flex space-x-4">
         <template v-if="isLoggedIn">
