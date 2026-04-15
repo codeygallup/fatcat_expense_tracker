@@ -2,23 +2,7 @@
 import { computed, onMounted, ref } from 'vue'
 import api from '@/api/index'
 import Skeleton from '@/components/Skeleton.vue'
-
-type BillStatus = 'PAID' | 'UNPAID' | 'OVERDUE'
-type FilterTab = 'ALL' | BillStatus
-
-interface Bill {
-  id: string
-  name: string
-  amount: number
-  dueDate: string
-  status: BillStatus
-}
-
-interface BillForm {
-  name: string
-  amount: string
-  dueDate: string
-}
+import type { Bill, BillForm, BillStatus, FilterTab } from '@/types'
 
 const bills = ref<Bill[]>([])
 const activeFilter = ref<FilterTab>('ALL')

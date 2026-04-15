@@ -3,21 +3,8 @@ import { onMounted, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import api from '@/api/index'
 import Skeleton from '@/components/Skeleton.vue'
+import type { Account, AccountForm, AccountType } from '@/types'
 
-type AccountType = 'CHECKING' | 'SAVINGS' | 'CREDIT_CARD'
-
-interface Account {
-  id: string
-  name: string
-  balance: number
-  accountType: AccountType
-}
-
-interface AccountForm {
-  name: string
-  accountType: AccountType
-  balance: number
-}
 
 const accounts = ref<Account[]>([])
 const showModal = ref(false)

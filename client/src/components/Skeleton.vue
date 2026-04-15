@@ -1,3 +1,12 @@
+<script setup lang="ts">
+import type { SkeletonProps } from '@/types'
+
+withDefaults(defineProps<SkeletonProps>(), {
+  type: 'default',
+  count: 3,
+})
+</script>
+
 <template>
   <div class="animate-pulse">
     <div v-if="type === 'card'" class="bg-gray-200 rounded-lg p-4">
@@ -22,15 +31,3 @@
     <div v-else class="h-4 bg-gray-300 rounded w-3/4"></div>
   </div>
 </template>
-
-<script setup lang="ts">
-interface Props {
-  type?: 'card' | 'list' | 'text' | 'default'
-  count?: number
-}
-
-withDefaults(defineProps<Props>(), {
-  type: 'default',
-  count: 3,
-})
-</script>
