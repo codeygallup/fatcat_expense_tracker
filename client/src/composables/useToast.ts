@@ -1,10 +1,5 @@
 import { ref } from 'vue'
-
-interface Toast {
-  id: number
-  message: string
-  type: 'success' | 'error' | 'info'
-}
+import type { Toast } from '@/types'
 
 const toasts = ref<Toast[]>([])
 let nextId = 0

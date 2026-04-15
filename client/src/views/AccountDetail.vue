@@ -4,43 +4,7 @@ import { useRoute } from 'vue-router'
 import VueApexCharts from 'vue3-apexcharts'
 import api from '@/api/index'
 import Skeleton from '@/components/Skeleton.vue'
-
-type AccountType = 'CHECKING' | 'SAVINGS' | 'CREDIT_CARD'
-type TransactionType = 'DEPOSIT' | 'WITHDRAWAL' | 'TRANSFER'
-type TransactionCategory =
-  | 'GROCERIES'
-  | 'DINING_OUT'
-  | 'HOUSING'
-  | 'TRANSPORTATION'
-  | 'BILLS_AND_SUBSCRIPTIONS'
-  | 'ENTERTAINMENT'
-  | 'MISCELLANEOUS'
-
-interface Account {
-  id: string
-  name: string
-  balance: number
-  accountType: AccountType
-}
-
-interface Transaction {
-  id: string
-  merchant: string
-  amount: number
-  date: string
-  transactionType: TransactionType
-  category: TransactionCategory
-  reimbursable: boolean
-}
-
-interface TransactionForm {
-  merchant: string
-  amount: number
-  date: string
-  transactionType: TransactionType
-  category: TransactionCategory
-  reimbursable: boolean
-}
+import type { Account, AccountType, Transaction, TransactionCategory, TransactionForm, TransactionType } from '@/types'
 
 const route = useRoute()
 const accountId = route.params.id as string
@@ -69,7 +33,7 @@ const CATEGORIES: TransactionCategory[] = [
   'BILLS_AND_SUBSCRIPTIONS', 'ENTERTAINMENT', 'MISCELLANEOUS',
 ]
 
-const TRANSACTION_TYPES: TransactionType[] = ['WITHDRAWAL', 'DEPOSIT', 'TRANSFER']
+const TRANSACTION_TYPES: TransactionType[] = ['WITHDRAWAL', 'DEPOSIT']
 
 const categoryLabel = (c: TransactionCategory) =>
   c.replace(/_/g, ' ').toLowerCase().replace(/^\w/, ch => ch.toUpperCase())
@@ -470,3 +434,4 @@ onMounted(fetchAll)
 
   </div>
 </template>
+b4: 472

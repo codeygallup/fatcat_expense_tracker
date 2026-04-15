@@ -3,15 +3,7 @@ import { computed, onMounted, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import api from '@/api/index'
 import Skeleton from '@/components/Skeleton.vue'
-
-interface Transaction {
-  id: number
-  description: string
-  merchant: string
-  amount: number
-  date: string
-  transactionType: 'DEPOSIT' | 'WITHDRAWAL'
-}
+import type { Transaction } from '@/types'
 
 const accounts = ref<{ id: number; balance: number }[]>([])
 const billsDue = ref<{ id: number; name: string; dueDate: string; status: string }[]>([])
