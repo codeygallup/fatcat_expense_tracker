@@ -1,299 +1,302 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+// import { computed, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import VueApexCharts from 'vue3-apexcharts'
-import api from '@/api/index'
+// import api from '@/api/index'
 import Skeleton from '@/components/Skeleton.vue'
-import type { Account, AccountType, Transaction, TransactionCategory, TransactionForm, TransactionType } from '@/types'
+// import type { Account, AccountType, Transaction, TransactionCategory, TransactionForm, TransactionType } from '@/types'
+import { useAccountDetails } from '@/composables/useAccountDetails'
 
 const route = useRoute()
 const accountId = route.params.id as string
 
-const account = ref<Account | null>(null)
-const transactions = ref<Transaction[]>([])
-const showModal = ref(false)
-const showChart = ref(true)
-const chartType = ref<'time' | 'category'>('time')
-const timeRange = ref<'weekly' | 'monthly'>('weekly')
-const editingTx = ref<Transaction | null>(null)
-const amountInput = ref('')
-const amountError = ref('')
-const form = ref<TransactionForm>({
-  merchant: '',
-  amount: 0,
-  date: new Date().toISOString().split('T')[0] ?? '',
-  transactionType: 'WITHDRAWAL',
-  category: 'MISCELLANEOUS',
-  reimbursable: false,
-})
-const loading = ref(true)
+const { account, transactions, showModal, showChart, chartType, timeRange, editingTx, amountInput, amountError, CATEGORIES, TRANSACTION_TYPES, categoryLabel, typeLabel, typeIcon, lineOptions, lineSeries, handleAmountInput, handleAmountKeydown, handleAmountPaste,  donutSeries, donutOptions, deleteTx, openAdd, openEdit, submitForm, loading, form } = useAccountDetails(accountId)
 
-const CATEGORIES: TransactionCategory[] = [
-  'GROCERIES', 'DINING_OUT', 'HOUSING', 'TRANSPORTATION',
-  'BILLS_AND_SUBSCRIPTIONS', 'ENTERTAINMENT', 'MISCELLANEOUS',
-]
+// const account = ref<Account | null>(null)
+// const transactions = ref<Transaction[]>([])
+// const showModal = ref(false)
+// const showChart = ref(true)
+// const chartType = ref<'time' | 'category'>('time')
+// const timeRange = ref<'weekly' | 'monthly'>('weekly')
+// const editingTx = ref<Transaction | null>(null)
+// const amountInput = ref('')
+// const amountError = ref('')
+// const form = ref<TransactionForm>({
+//   merchant: '',
+//   amount: 0,
+//   date: new Date().toISOString().split('T')[0] ?? '',
+//   transactionType: 'WITHDRAWAL',
+//   category: 'MISCELLANEOUS',
+//   reimbursable: false,
+// })
+// const loading = ref(true)
 
-const TRANSACTION_TYPES: TransactionType[] = ['WITHDRAWAL', 'DEPOSIT']
+// const CATEGORIES: TransactionCategory[] = [
+//   'GROCERIES', 'DINING_OUT', 'HOUSING', 'TRANSPORTATION',
+//   'BILLS_AND_SUBSCRIPTIONS', 'ENTERTAINMENT', 'MISCELLANEOUS',
+// ]
 
-const categoryLabel = (c: TransactionCategory) =>
-  c.replace(/_/g, ' ').toLowerCase().replace(/^\w/, ch => ch.toUpperCase())
+// const TRANSACTION_TYPES: TransactionType[] = ['WITHDRAWAL', 'DEPOSIT']
 
-const typeLabel = (t: TransactionType) =>
-  ({ WITHDRAWAL: 'Expense', DEPOSIT: 'Income', TRANSFER: 'Transfer' }[t])
+// const categoryLabel = (c: TransactionCategory) =>
+//   c.replace(/_/g, ' ').toLowerCase().replace(/^\w/, ch => ch.toUpperCase())
 
-const typeIcon = (type: AccountType) =>
-  ({ CHECKING: '🏦', SAVINGS: '🐖', CREDIT_CARD: '💳' })[type]
+// const typeLabel = (t: TransactionType) =>
+//   ({ WITHDRAWAL: 'Expense', DEPOSIT: 'Income', TRANSFER: 'Transfer' }[t])
+
+// const typeIcon = (type: AccountType) =>
+//   ({ CHECKING: '🏦', SAVINGS: '🐖', CREDIT_CARD: '💳' })[type]
 
 // Line chart — spending by date (withdrawals only)
-const spendingByDate = computed(() => {
-  const map: Record<string, number> = {}
-  const dates: string[] = []
-  const txs = transactions.value
-    .filter(tx => tx.transactionType !== 'DEPOSIT')
-    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+// const spendingByDate = computed(() => {
+//   const map: Record<string, number> = {}
+//   const dates: string[] = []
+//   const txs = transactions.value
+//     .filter(tx => tx.transactionType !== 'DEPOSIT')
+//     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
 
-  if (timeRange.value === 'weekly') {
-    txs.forEach(tx => {
-      const date = new Date(tx.date + 'T00:00:00')
-      const weekStart = new Date(date)
-      weekStart.setDate(date.getDate() - date.getDay())
-      const weekKey = weekStart.toISOString().split('T')[0] || ''
-      if (weekKey) {
-        map[weekKey] = (map[weekKey] ?? 0) + tx.amount
-        if (!dates.includes(weekKey)) dates.push(weekKey)
-      }
-    })
-  } else {
-    txs.forEach(tx => {
-      const date = new Date(tx.date + 'T00:00:00')
-      const monthKey = date.toISOString().slice(0, 7)
-      if (monthKey) {
-        map[monthKey] = (map[monthKey] ?? 0) + tx.amount
-        if (!dates.includes(monthKey)) dates.push(monthKey)
-      }
-    })
-  }
+//   if (timeRange.value === 'weekly') {
+//     txs.forEach(tx => {
+//       const date = new Date(tx.date + 'T00:00:00')
+//       const weekStart = new Date(date)
+//       weekStart.setDate(date.getDate() - date.getDay())
+//       const weekKey = weekStart.toISOString().split('T')[0] || ''
+//       if (weekKey) {
+//         map[weekKey] = (map[weekKey] ?? 0) + tx.amount
+//         if (!dates.includes(weekKey)) dates.push(weekKey)
+//       }
+//     })
+//   } else {
+//     txs.forEach(tx => {
+//       const date = new Date(tx.date + 'T00:00:00')
+//       const monthKey = date.toISOString().slice(0, 7)
+//       if (monthKey) {
+//         map[monthKey] = (map[monthKey] ?? 0) + tx.amount
+//         if (!dates.includes(monthKey)) dates.push(monthKey)
+//       }
+//     })
+//   }
 
-  dates.sort()
-  return { dates, amounts: dates.map(d => Math.round((map[d] ?? 0) * 100) / 100) }
-})
+//   dates.sort()
+//   return { dates, amounts: dates.map(d => Math.round((map[d] ?? 0) * 100) / 100) }
+// })
 
-const lineOptions = computed(() => {
-  const categoryLabels = spendingByDate.value.dates.map(d => {
-    if (timeRange.value === 'weekly') {
-      const date = new Date(d + 'T00:00:00')
-      const weekEnd = new Date(date)
-      weekEnd.setDate(date.getDate() + 6)
-      return `${date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${weekEnd.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`
-    } else {
-      return new Date(d + '-01T00:00:00').toLocaleDateString('en-US', { month: 'short', year: '2-digit' })
-    }
-  })
-  return {
-    chart: { type: 'line' as const, zoom: { enabled: true } },
-    xaxis: {
-      categories: categoryLabels,
-    },
-    yaxis: {
-      title: { text: 'Amount ($)' },
-    },
-    stroke: { curve: 'smooth' as const },
-    fill: { type: 'gradient' as const },
-  }
-})
-const lineSeries = computed(() => [{
-  name: 'Spending',
-  data: spendingByDate.value.amounts,
-}])
+// const lineOptions = computed(() => {
+//   const categoryLabels = spendingByDate.value.dates.map(d => {
+//     if (timeRange.value === 'weekly') {
+//       const date = new Date(d + 'T00:00:00')
+//       const weekEnd = new Date(date)
+//       weekEnd.setDate(date.getDate() + 6)
+//       return `${date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${weekEnd.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`
+//     } else {
+//       return new Date(d + '-01T00:00:00').toLocaleDateString('en-US', { month: 'short', year: '2-digit' })
+//     }
+//   })
+//   return {
+//     chart: { type: 'line' as const, zoom: { enabled: true } },
+//     xaxis: {
+//       categories: categoryLabels,
+//     },
+//     yaxis: {
+//       title: { text: 'Amount ($)' },
+//     },
+//     stroke: { curve: 'smooth' as const },
+//     fill: { type: 'gradient' as const },
+//   }
+// })
+// const lineSeries = computed(() => [{
+//   name: 'Spending',
+//   data: spendingByDate.value.amounts,
+// }])
 
-const sanitizeAmount = (value: string) => {
-  const cleaned = value
-    .replace(/,/g, '')
-    .replace(/[^0-9.]/g, '')
-    .replace(/(\..*)\./g, '$1')
+// const sanitizeAmount = (value: string) => {
+//   const cleaned = value
+//     .replace(/,/g, '')
+//     .replace(/[^0-9.]/g, '')
+//     .replace(/(\..*)\./g, '$1')
 
-  const [integer = '', decimal] = cleaned.split('.')
-  const trimmedInteger = integer.replace(/^0+(?=\d)/, '') || '0'
-  const trimmedDecimal = decimal !== undefined ? decimal.slice(0, 2) : undefined
-  return trimmedDecimal !== undefined ? `${trimmedInteger}.${trimmedDecimal}` : trimmedInteger
-}
+//   const [integer = '', decimal] = cleaned.split('.')
+//   const trimmedInteger = integer.replace(/^0+(?=\d)/, '') || '0'
+//   const trimmedDecimal = decimal !== undefined ? decimal.slice(0, 2) : undefined
+//   return trimmedDecimal !== undefined ? `${trimmedInteger}.${trimmedDecimal}` : trimmedInteger
+// }
 
-const showAmountError = (message: string) => {
-  amountError.value = message
-  window.clearTimeout((showAmountError as any).timeout)
-  ;(showAmountError as any).timeout = window.setTimeout(() => {
-    amountError.value = ''
-  }, 2500)
-}
+// const showAmountError = (message: string) => {
+//   amountError.value = message
+//   window.clearTimeout((showAmountError as any).timeout)
+//   ;(showAmountError as any).timeout = window.setTimeout(() => {
+//     amountError.value = ''
+//   }, 2500)
+// }
 
-const handleAmountInput = (event: InputEvent) => {
-  const target = event.target as HTMLInputElement
-  const raw = target.value
-  const sanitized = sanitizeAmount(raw)
+// const handleAmountInput = (event: InputEvent) => {
+//   const target = event.target as HTMLInputElement
+//   const raw = target.value
+//   const sanitized = sanitizeAmount(raw)
 
-  if (raw !== sanitized) {
-    showAmountError('Only numbers and a decimal point are allowed.')
-  }
+//   if (raw !== sanitized) {
+//     showAmountError('Only numbers and a decimal point are allowed.')
+//   }
 
-  amountInput.value = sanitized
-  form.value.amount = parseFloat(sanitized) || 0
-}
+//   amountInput.value = sanitized
+//   form.value.amount = parseFloat(sanitized) || 0
+// }
 
-const handleAmountKeydown = (event: KeyboardEvent) => {
-  const allowedKeys = ['Backspace', 'Tab', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Delete', 'Home', 'End']
-  const key = event.key
-  const target = event.target as HTMLInputElement
+// const handleAmountKeydown = (event: KeyboardEvent) => {
+//   const allowedKeys = ['Backspace', 'Tab', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Delete', 'Home', 'End']
+//   const key = event.key
+//   const target = event.target as HTMLInputElement
 
-  if (allowedKeys.includes(key)) {
-    return
-  }
+//   if (allowedKeys.includes(key)) {
+//     return
+//   }
 
-  if (key === '.') {
-    if (target.value.includes('.')) {
-      event.preventDefault()
-      showAmountError('Only one decimal point is allowed.')
-    }
-    return
-  }
+//   if (key === '.') {
+//     if (target.value.includes('.')) {
+//       event.preventDefault()
+//       showAmountError('Only one decimal point is allowed.')
+//     }
+//     return
+//   }
 
-  if (!/^[0-9]$/.test(key)) {
-    event.preventDefault()
-    showAmountError('Only digits and a decimal point are allowed.')
-    return
-  }
+//   if (!/^[0-9]$/.test(key)) {
+//     event.preventDefault()
+//     showAmountError('Only digits and a decimal point are allowed.')
+//     return
+//   }
 
-  const selectionStart = target.selectionStart ?? 0
-  const selectionEnd = target.selectionEnd ?? 0
-  const proposed = target.value.slice(0, selectionStart) + key + target.value.slice(selectionEnd)
-  const decimalIndex = proposed.indexOf('.')
+//   const selectionStart = target.selectionStart ?? 0
+//   const selectionEnd = target.selectionEnd ?? 0
+//   const proposed = target.value.slice(0, selectionStart) + key + target.value.slice(selectionEnd)
+//   const decimalIndex = proposed.indexOf('.')
 
-  if (decimalIndex >= 0) {
-    const decimalPart = proposed.slice(decimalIndex + 1)
-    if (decimalPart.length > 2) {
-      event.preventDefault()
-      showAmountError('Only two decimal places are allowed.')
-    }
-  }
-}
+//   if (decimalIndex >= 0) {
+//     const decimalPart = proposed.slice(decimalIndex + 1)
+//     if (decimalPart.length > 2) {
+//       event.preventDefault()
+//       showAmountError('Only two decimal places are allowed.')
+//     }
+//   }
+// }
 
-const handleAmountPaste = (event: ClipboardEvent) => {
-  const pasted = event.clipboardData?.getData('text/plain') ?? ''
-  if (/[^0-9.]/.test(pasted) || (pasted.match(/\./g) ?? []).length > 1) {
-    event.preventDefault()
-    showAmountError('Only digits and a decimal point are allowed.')
-    return
-  }
+// const handleAmountPaste = (event: ClipboardEvent) => {
+//   const pasted = event.clipboardData?.getData('text/plain') ?? ''
+//   if (/[^0-9.]/.test(pasted) || (pasted.match(/\./g) ?? []).length > 1) {
+//     event.preventDefault()
+//     showAmountError('Only digits and a decimal point are allowed.')
+//     return
+//   }
 
-  const target = event.target as HTMLInputElement
-  const selectionStart = target.selectionStart ?? 0
-  const selectionEnd = target.selectionEnd ?? 0
-  const proposed = target.value.slice(0, selectionStart) + pasted + target.value.slice(selectionEnd)
-  const decimalIndex = proposed.indexOf('.')
-  if (decimalIndex >= 0 && proposed.slice(decimalIndex + 1).length > 2) {
-    event.preventDefault()
-    showAmountError('Only two decimal places are allowed.')
-  }
-}
+//   const target = event.target as HTMLInputElement
+//   const selectionStart = target.selectionStart ?? 0
+//   const selectionEnd = target.selectionEnd ?? 0
+//   const proposed = target.value.slice(0, selectionStart) + pasted + target.value.slice(selectionEnd)
+//   const decimalIndex = proposed.indexOf('.')
+//   if (decimalIndex >= 0 && proposed.slice(decimalIndex + 1).length > 2) {
+//     event.preventDefault()
+//     showAmountError('Only two decimal places are allowed.')
+//   }
+// }
 
 // Donut — spending by category (withdrawals only)
-const spendingByCategory = computed(() => {
-  const map: Record<string, number> = {}
-  transactions.value
-    .filter(tx => tx.transactionType !== 'DEPOSIT')
-    .forEach(tx => {
-      map[tx.category] = (map[tx.category] ?? 0) + tx.amount
-    })
-  return map
-})
+// const spendingByCategory = computed(() => {
+//   const map: Record<string, number> = {}
+//   transactions.value
+//     .filter(tx => tx.transactionType !== 'DEPOSIT')
+//     .forEach(tx => {
+//       map[tx.category] = (map[tx.category] ?? 0) + tx.amount
+//     })
+//   return map
+// })
 
-const donutSeries = computed(() => Object.values(spendingByCategory.value))
-const donutLabels = computed(() =>
-  Object.keys(spendingByCategory.value).map(c => categoryLabel(c as TransactionCategory))
-)
-const donutOptions = computed(() => ({
-  chart: { type: 'donut' as const },
-  labels: donutLabels.value,
-  legend: { position: 'bottom' as const },
-  dataLabels: { enabled: false },
-  plotOptions: { pie: { donut: { size: '65%' } } },
-  colors: ['#6366f1','#f59e0b','#10b981','#3b82f6','#ef4444','#8b5cf6','#ec4899','#94a3b8'],
-}))
+// const donutSeries = computed(() => Object.values(spendingByCategory.value))
+// const donutLabels = computed(() =>
+//   Object.keys(spendingByCategory.value).map(c => categoryLabel(c as TransactionCategory))
+// )
+// const donutOptions = computed(() => ({
+//   chart: { type: 'donut' as const },
+//   labels: donutLabels.value,
+//   legend: { position: 'bottom' as const },
+//   dataLabels: { enabled: false },
+//   plotOptions: { pie: { donut: { size: '65%' } } },
+//   colors: ['#6366f1','#f59e0b','#10b981','#3b82f6','#ef4444','#8b5cf6','#ec4899','#94a3b8'],
+// }))
 
-async function fetchAll() {
-  try {
-    const [acct, txs] = await Promise.all([
-      api(`/accounts/${accountId}`).then(r => r.json()),
-      api(`/transactions?accountId=${accountId}`).then(r => r.json()),
-    ])
-    account.value = acct
-    transactions.value = txs
-  } catch (e) {
-    console.error('Failed to fetch account details', e)
-  } finally {
-    loading.value = false
-  }
-}
+// async function fetchAll() {
+//   try {
+//     const [acct, txs] = await Promise.all([
+//       api(`/accounts/${accountId}`).then(r => r.json()),
+//       api(`/transactions?accountId=${accountId}`).then(r => r.json()),
+//     ])
+//     account.value = acct
+//     transactions.value = txs
+//   } catch (e) {
+//     console.error('Failed to fetch account details', e)
+//   } finally {
+//     loading.value = false
+//   }
+// }
 
-async function deleteTx(id: string) {
-  if (!window.confirm('Delete this transaction?')) return
-  await api(`/transactions/${id}`, { method: 'DELETE' })
-  await fetchAll()
-}
+// async function deleteTx(id: string) {
+//   if (!window.confirm('Delete this transaction?')) return
+//   await api(`/transactions/${id}`, { method: 'DELETE' })
+//   await fetchAll()
+// }
 
-function openAdd() {
-  editingTx.value = null
-  form.value = {
-    merchant: '',
-    amount: 0,
-    date: new Date().toISOString().split('T')[0] ?? '',
-    transactionType: 'WITHDRAWAL',
-    category: 'MISCELLANEOUS',
-    reimbursable: false,
-  }
-  amountInput.value = ''
-  showModal.value = true
-}
+// function openAdd() {
+//   editingTx.value = null
+//   form.value = {
+//     merchant: '',
+//     amount: 0,
+//     date: new Date().toISOString().split('T')[0] ?? '',
+//     transactionType: 'WITHDRAWAL',
+//     category: 'MISCELLANEOUS',
+//     reimbursable: false,
+//   }
+//   amountInput.value = ''
+//   showModal.value = true
+// }
 
-function openEdit(tx: Transaction) {
-  editingTx.value = tx
-  form.value = {
-    merchant: tx.merchant,
-    amount: tx.amount,
-    date: tx.date,
-    transactionType: tx.transactionType,
-    category: tx.category,
-    reimbursable: tx.reimbursable,
-  }
-  amountInput.value = tx.amount.toString()
-  showModal.value = true
-}
+// function openEdit(tx: Transaction) {
+//   editingTx.value = tx
+//   form.value = {
+//     merchant: tx.merchant,
+//     amount: tx.amount,
+//     date: tx.date,
+//     transactionType: tx.transactionType,
+//     category: tx.category,
+//     reimbursable: tx.reimbursable,
+//   }
+//   amountInput.value = tx.amount.toString()
+//   showModal.value = true
+// }
 
-async function submitForm() {
-  const payload = {
-    accountId,
-    merchant: form.value.merchant,
-    amount: parseFloat(amountInput.value) || 0,
-    date: form.value.date,
-    transactionType: form.value.transactionType,
-    category: form.value.category,
-    reimbursable: form.value.reimbursable,
-  }
-  if (editingTx.value) {
-    await api(`/transactions/${editingTx.value.id}`, {
-      method: 'PUT',
-      body: JSON.stringify(payload),
-    })
-  } else {
-    await api('/transactions', {
-      method: 'POST',
-      body: JSON.stringify(payload),
-    })
-  }
-  showModal.value = false
-  await fetchAll()
-}
+// async function submitForm() {
+//   const payload = {
+//     accountId,
+//     merchant: form.value.merchant,
+//     amount: parseFloat(amountInput.value) || 0,
+//     date: form.value.date,
+//     transactionType: form.value.transactionType,
+//     category: form.value.category,
+//     reimbursable: form.value.reimbursable,
+//   }
+//   if (editingTx.value) {
+//     await api(`/transactions/${editingTx.value.id}`, {
+//       method: 'PUT',
+//       body: JSON.stringify(payload),
+//     })
+//   } else {
+//     await api('/transactions', {
+//       method: 'POST',
+//       body: JSON.stringify(payload),
+//     })
+//   }
+//   showModal.value = false
+//   await fetchAll()
+// }
 
-onMounted(fetchAll)
+// onMounted(fetchAll)
 </script>
 <template>
   <div class="p-4 max-w-6xl mx-auto pb-24 md:pb-4">
