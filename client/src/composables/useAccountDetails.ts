@@ -9,8 +9,18 @@ import type {
 } from '@/types'
 import { computed, onMounted, ref } from 'vue'
 import { useToast } from './useToast'
+import { useAmountInput } from './useAmountInput'
 
 export function useAccountDetails(accountId: string) {
+  const {
+    amountInput,
+    amountError,
+    parsedAmount,
+    handleAmountInput,
+    handleAmountKeydown,
+    handleAmountPaste,
+  } = useAmountInput()
+
   const { addToast, confirm } = useToast()
   const account = ref<Account | null>(null)
   const transactions = ref<Transaction[]>([])
@@ -19,8 +29,6 @@ export function useAccountDetails(accountId: string) {
   const chartType = ref<'time' | 'category'>('time')
   const timeRange = ref<'weekly' | 'monthly'>('weekly')
   const editingTx = ref<Transaction | null>(null)
-  const amountInput = ref('')
-  const amountError = ref('')
   const form = ref<TransactionForm>({
     merchant: '',
     amount: 0,
@@ -111,103 +119,6 @@ export function useAccountDetails(accountId: string) {
     }
   })
   const lineSeries = computed(() => [{ name: 'Spending', data: spendingByDate.value.amounts }])
-  const sanitizeAmount = (value: string) => {
-    const cleaned = value
-      .replace(/,/g, '')
-      .replace(/[^0-9.]/g, '')
-      .replace(/(\..*)\./g, '$1')
-
-    const [integer = '', decimal] = cleaned.split('.')
-    const trimmedInt = integer.replace(/^0+(?=\d)/, '') || '0'
-    const trimmedDec = decimal !== undefined ? decimal.slice(0, 2) : undefined
-
-    return trimmedDec !== undefined ? `${trimmedInt}.${trimmedDec}` : trimmedInt
-  }
-  const showAmountError = (message: string) => {
-    amountError.value = message
-    window.clearTimeout((showAmountError as any).timeout);(showAmountError as any).timeout =
-      window.setTimeout(() => {
-        amountError.value = ''
-      }, 3000)
-  }
-  const handleAmountInput = (e: InputEvent) => {
-    const target = e.target as HTMLInputElement
-    const raw = target.value
-    const sanitized = sanitizeAmount(raw)
-
-    if (raw !== sanitized) {
-      showAmountError(
-        'Only numbers and a single decimal point are allowed. Max two decimal places.',
-      )
-    }
-
-    amountInput.value = sanitized
-    amountError.value = ''
-  }
-
-  const handleAmountKeydown = (e: KeyboardEvent) => {
-    const allowedKeys = [
-      'Backspace',
-      'Tab',
-      'ArrowLeft',
-      'ArrowRight',
-      'ArrowUp',
-      'ArrowDown',
-      'Delete',
-      'Home',
-      'End',
-    ]
-    const key = e.key
-    const target = e.target as HTMLInputElement
-
-    if (allowedKeys.includes(key)) return
-
-    if (key === '.') {
-      if (target.value.includes('.')) {
-        e.preventDefault()
-        showAmountError('Only one decimal point is allowed.')
-      }
-      return
-    }
-
-    if (!/^\d$/.test(key)) {
-      e.preventDefault()
-      showAmountError('Only numeric input is allowed.')
-      return
-    }
-
-    const selectionStart = target.selectionStart ?? 0
-    const selectionEnd = target.selectionEnd ?? 0
-    const proposed = target.value.slice(0, selectionStart) + key + target.value.slice(selectionEnd)
-    const decimalIndex = proposed.indexOf('.')
-
-    if (decimalIndex >= 0) {
-      const decimalPart = proposed.slice(decimalIndex + 1)
-      if (decimalPart.length > 2) {
-        e.preventDefault()
-        showAmountError('Maximum two decimal places allowed.')
-      }
-    }
-  }
-  const handleAmountPaste = (event: ClipboardEvent) => {
-    const pasted = event.clipboardData?.getData('text/plain') ?? ''
-    if (/[^0-9.]/.test(pasted) || (pasted.match(/\./g) ?? []).length > 1) {
-      event.preventDefault()
-      showAmountError('Only digits and a decimal point are allowed.')
-      return
-    }
-
-    const target = event.target as HTMLInputElement
-    const selectionStart = target.selectionStart ?? 0
-    const selectionEnd = target.selectionEnd ?? 0
-    const proposed =
-      target.value.slice(0, selectionStart) + pasted + target.value.slice(selectionEnd)
-    const decimalIndex = proposed.indexOf('.')
-    if (decimalIndex >= 0 && proposed.slice(decimalIndex + 1).length > 2) {
-      event.preventDefault()
-      showAmountError('Only two decimal places are allowed.')
-    }
-  }
   // Donut — spending by category (withdrawals only)
   const spendingByCategory = computed(() => {
     const map: Record<string, number> = {}
@@ -293,12 +204,12 @@ export function useAccountDetails(accountId: string) {
       if (editingTx.value) {
         await api(`/transactions/${editingTx.value.id}`, {
           method: 'PUT',
-          body: JSON.stringify({ ...form.value, amount: parseFloat(amountInput.value) }),
+          body: JSON.stringify({ ...form.value, amount: parsedAmount.value }),
         })
       } else {
         await api('/transactions', {
           method: 'POST',
-          body: JSON.stringify({ ...form.value, amount: parseFloat(amountInput.value), accountId }),
+          body: JSON.stringify({ ...form.value, amount: parsedAmount.value, accountId }),
         })
       }
       showModal.value = false
@@ -330,12 +241,12 @@ export function useAccountDetails(accountId: string) {
     typeIcon,
     lineOptions,
     lineSeries,
-    handleAmountInput,
-    handleAmountKeydown,
-    handleAmountPaste,
     donutOptions,
     donutSeries,
     donutLabels,
+    handleAmountInput,
+    handleAmountKeydown,
+    handleAmountPaste,
     fetchAll,
     deleteTx: deleteTransaction,
     openAdd,

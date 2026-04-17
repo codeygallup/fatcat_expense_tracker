@@ -7,7 +7,7 @@ import { useAccountDetails } from '@/composables/useAccountDetails'
 const route = useRoute()
 const accountId = route.params.id as string
 
-const { account, transactions, showModal, showChart, chartType, timeRange, editingTx, amountInput, amountError, CATEGORIES, TRANSACTION_TYPES, categoryLabel, typeLabel, typeIcon, lineOptions, lineSeries, handleAmountInput, handleAmountKeydown, handleAmountPaste,  donutSeries, donutOptions, deleteTx, openAdd, openEdit, submitForm, loading, form } = useAccountDetails(accountId)
+const { account, transactions, showModal, showChart, chartType, timeRange, editingTx, amountInput, amountError, CATEGORIES, TRANSACTION_TYPES, categoryLabel, typeLabel, typeIcon, lineOptions, lineSeries, donutSeries, donutOptions, handleAmountInput, handleAmountKeydown, handleAmountPaste, deleteTx, openAdd, openEdit, submitForm, loading, form } = useAccountDetails(accountId)
 </script>
 
 <template>
