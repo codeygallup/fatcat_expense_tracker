@@ -18,7 +18,7 @@ router.beforeEach((to) => {
   const publicPages = ['Login', 'Register']
 
   if (!token && !publicPages.includes(to.name as string)) {
-    return '/'
+    return { name: 'Login' }
   }
 })
 

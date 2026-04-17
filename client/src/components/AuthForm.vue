@@ -1,62 +1,9 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-import { useRouter } from 'vue-router'
-import api from '@/api/index'
 import { useAuth } from '@/composables/useAuth'
 
 const props = defineProps<{ isRegister?: boolean }>()
 
-const email = ref('')
-const password = ref('')
-const confirmPassword = ref('')
-
-const hasUpper = computed(() => /[A-Z]/.test(password.value))
-const hasLower = computed(() => /[a-z]/.test(password.value))
-const hasNumber = computed(() => /[0-9]/.test(password.value))
-const hasSymbol = computed(() => /[^A-Za-z0-9]/.test(password.value))
-const hasMinLength = computed(() => password.value.length >= 8)
-const passwordValid = computed(
-  () => hasUpper.value && hasLower.value && hasNumber.value && hasSymbol.value && hasMinLength.value
-)
-const passwordsMatch = computed(
-  () => confirmPassword.value.length > 0 && confirmPassword.value === password.value
-)
-
-const passwordRules = computed(() => [
-  { label: 'At least 8 characters', valid: hasMinLength.value },
-  { label: 'Uppercase letter', valid: hasUpper.value },
-  { label: 'Lowercase letter', valid: hasLower.value },
-  { label: 'Number', valid: hasNumber.value },
-  { label: 'Symbol', valid: hasSymbol.value },
-])
-
-const { login } = useAuth()
-
-const router = useRouter()
-
-const error = ref<string | null>(null)
-
-const handleSubmit = async () => {
-  error.value = null
-  if (props.isRegister && (!passwordValid.value || !passwordsMatch.value)) {
-    error.value = !passwordValid.value
-      ? 'Please complete the password requirements.'
-      : 'Passwords must match.'
-    return
-  }
-
-  try {
-    const res = await api(props.isRegister ? '/users/register' : '/users/login', {
-      method: 'POST',
-      body: JSON.stringify({ email: email.value, password: password.value }),
-    })
-    const token = await res.text()
-    login(token)
-    router.push('/dashboard')
-  } catch (err) {
-    error.value = (err as Error).message
-  }
-}
+const { email, password, confirmPassword, passwordRules, passwordValid, passwordsMatch, handleSubmit, showStrongPassword } = useAuth(props)
 </script>
 
 <template>
@@ -94,7 +41,7 @@ const handleSubmit = async () => {
           </div>
 
           <div v-else>
-            <p class="text-green-700 font-medium">Nice! Your password is strong.</p>
+            <p v-if="showStrongPassword" class="text-green-700 font-medium">Nice! Your password is strong.</p>
             <div class="space-y-2">
               <label class="block text-gray-700 text-sm font-bold" for="confirmPassword">Confirm Password</label>
               <input v-model="confirmPassword" id="confirmPassword" type="password" placeholder="Re-enter your password"
@@ -108,7 +55,7 @@ const handleSubmit = async () => {
         </div>
       </div>
       <div class="flex flex-col gap-3 mt-2">
-        <p v-if="error" class="text-sm text-red-500">{{ error }}</p>
+        <!-- <p v-if="error" class="text-sm text-red-500">{{ error }}</p> -->
         <button type="submit" :disabled="props.isRegister && (!passwordValid || !passwordsMatch)" :class="[
           'w-full font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline',
           props.isRegister && (!passwordValid || !passwordsMatch)
