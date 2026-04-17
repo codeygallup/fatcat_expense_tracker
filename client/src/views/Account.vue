@@ -8,7 +8,7 @@ const { accounts, loading, editingAccount, form, showModal, ACCOUNT_TYPES, typeL
 </script>
 
 <template>
-  <div class="p-4 max-w-2xl md:max-w-full mx-auto md:mx-20 pb-24 sm:pb-4">
+  <div class="p-4 max-w-sm md:max-w-full mx-auto md:mx-20 pb-24 sm:pb-4">
     <!-- Header -->
     <div class="flex items-center justify-between mb-4">
       <h1 class="text-xl font-bold text-gray-900">Accounts</h1>
@@ -36,14 +36,14 @@ const { accounts, loading, editingAccount, form, showModal, ACCOUNT_TYPES, typeL
           </RouterLink>
 
           <!-- Balance -->
-          <span class="text-base font-semibold shrink-0"
-            :class="account.balance < 0 ? 'text-red-600' : 'text-gray-900'">
-            {{
-              new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(
-                account.balance,
-              )
-            }}
-          </span>
+        <span class="text-base font-semibold shrink-0 max-w-30 truncate"
+          :class="account.balance < 0 ? 'text-red-600' : 'text-gray-900'">
+          {{
+            new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(
+              account.balance,
+            )
+          }}
+        </span>
 
           <!-- Actions -->
           <div class="flex items-center gap-1 shrink-0">
