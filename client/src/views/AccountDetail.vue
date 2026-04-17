@@ -23,7 +23,7 @@ const { account, transactions, showModal, showChart, chartType, timeRange, editi
       Back to Accounts
     </RouterLink>
 
-    <div class="md:grid md:grid-cols-[1fr_1.5fr] md:gap-6 md:items-start">
+    <div class="md:grid md:grid-cols-[1fr_1.5fr] md:gap-6 md:items-start max-w-sm">
 
       <!-- Left col: account header + chart -->
       <div class="flex flex-col gap-4 mb-4 md:mb-0 md:rounded-2xl md:p-6 md:h-full md:justify-between">
@@ -34,8 +34,14 @@ const { account, transactions, showModal, showChart, chartType, timeRange, editi
             <h1 class="text-xl font-bold text-gray-900 truncate">{{ account.name }}</h1>
             <p class="text-xs text-gray-400 capitalize">{{ account.accountType.toLowerCase().replace('_', ' ') }}</p>
           </div>
-          <span class="text-2xl font-bold" :class="account.balance < 0 ? 'text-red-600' : 'text-gray-900'">
-            {{ new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(account.balance) }}
+          <span 
+            class="font-bold" 
+            :class="[
+              account.balance < 0 ? 'text-red-600' : 'text-gray-900',
+              account.balance >= 1000000 ? 'text-xl' : 'text-2xl md:text-4xl'
+            ]"
+          > 
+            {{ new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(account.balance) }} 
           </span>
         </div>
         <div v-if="donutSeries.length" class="bg-white border border-gray-200 rounded-2xl p-6 md:h-full flex flex-col justify-around">

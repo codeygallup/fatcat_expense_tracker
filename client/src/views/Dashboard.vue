@@ -78,7 +78,7 @@ onMounted(async () => {
             class="bg-white border border-gray-200 rounded-2xl p-6 flex flex-col gap-1 md:gap-3 md:p-8 md:flex-1 hover:shadow-md transition-shadow justify-between md:justify-around text-center"
           >
             <span class="text-xs text-gray-500 uppercase tracking-wide">Total Balance</span>
-            <span class="text-2xl md:text-4xl font-bold text-gray-900">{{ formattedBalance }}</span>
+            <span class="md:text-4xl font-bold text-gray-900"   :class="Number(formattedBalance.replace(/[^0-9.-]+/g, '')) >= 1000000 ? 'text-lg' : 'text-2xl'">{{ formattedBalance }}</span>
             <span class="text-xs md:text-sm text-gray-400"
               >across {{ accounts.length }} accounts</span
             >
