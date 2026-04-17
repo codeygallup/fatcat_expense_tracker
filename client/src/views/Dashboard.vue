@@ -72,8 +72,7 @@ const {
         </div>
 
         <!-- Recent activity -->
-        <RouterLink
-          to="/transactions"
+        <div
           class="bg-white border border-gray-200 rounded-2xl p-6 hover:shadow-md transition-shadow md:flex-1 md:overflow-hidden"
         >
           <span class="text-xs text-gray-500 uppercase tracking-wide block mb-3"
@@ -100,7 +99,7 @@ const {
               No recent transactions
             </div>
           </div>
-        </RouterLink>
+        </div>
       </div>
     </template>
   </div>
