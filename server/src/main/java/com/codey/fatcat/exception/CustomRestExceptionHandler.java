@@ -45,13 +45,13 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
   public ResponseEntity<CustomErrorResponse> handleEmailAlreadyInUseException(EmailAlreadyInUseException exc,
                                                                            WebRequest request) {
     CustomErrorResponse errorResponse = buildErrorResponse(
-            HttpStatus.BAD_REQUEST,
+            HttpStatus.CONFLICT,
             exc.getMessage(),
             "Email already in use",
             request
     );
 
-    return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
   }
 
   @ExceptionHandler(UnauthorizedException.class)
