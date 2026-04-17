@@ -52,7 +52,7 @@ const { activeFilter, showModal, editingBill, form, loading, TABS, tabLabel, fil
             <span class="font-medium text-gray-900 truncate">{{ bill.name }}</span>
             <span
               @click="updateStatus(bill)"
-              class="text-xs px-2 py-0.5 rounded-full font-medium shrink-0 cursor-pointer select-none"
+              class="text-xs px-2 py-0.5 rounded-full font-medium shrink-0 cursor-pointer select-none min-w-16 text-center"
               :class="statusBadge(bill.status)"
               :title="bill.status === 'PAID' ? 'Click to mark unpaid' : 'Click to mark paid'"
             >
@@ -157,7 +157,7 @@ const { activeFilter, showModal, editingBill, form, loading, TABS, tabLabel, fil
             <div>
               <label class="text-xs text-gray-500 uppercase tracking-wide mb-1 block">Amount</label>
               <input :value="amountInput" @input="handleAmountInput" @keydown="handleAmountKeydown"
-                @paste="handleAmountPaste" inputmode="decimal" placeholder="0.00"
+                @paste="handleAmountPaste" inputmode="decimal" placeholder="0.00" maxlength="10"
                 class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900" />
               <p v-if="amountError" class="mt-1 text-xs text-red-500">{{ amountError }}</p>
             </div>
