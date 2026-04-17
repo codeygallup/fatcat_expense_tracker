@@ -1,47 +1,17 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
 import { RouterLink } from 'vue-router'
-import api from '@/api/index'
 import Skeleton from '@/components/Skeleton.vue'
+import { useDashboard } from '@/composables/useDashboard'
 
-interface Transaction {
-  id: number
-  description: string
-  merchant: string
-  amount: number
-  date: string
-  transactionType: 'DEPOSIT' | 'WITHDRAWAL'
-}
-
-const accounts = ref<{ id: number; balance: number }[]>([])
-const billsDue = ref<{ id: number; name: string; dueDate: string; status: string }[]>([])
-const recentTransactions = ref<Transaction[]>([])
-const loading = ref(true)
-
-const formattedBalance = computed(() => {
-  const total = accounts.value.reduce((sum, a) => sum + a.balance, 0)
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(total)
-})
-
-const overdueBills = computed(() => billsDue.value.filter((b) => b.status === 'OVERDUE'))
-const hasOverdue = computed(() => overdueBills.value.length > 0)
-
-onMounted(async () => {
-  try {
-    const [accountsRes, billsRes, transactionsRes] = await Promise.all([
-      api('/accounts'),
-      api('/bills/upcoming'),
-      api('/transactions/recent'),
-    ])
-    accounts.value = await accountsRes.json()
-    billsDue.value = await billsRes.json()
-    recentTransactions.value = await transactionsRes.json()
-  } catch (e) {
-    console.error('Failed to fetch dashboard data', e)
-  } finally {
-    loading.value = false
-  }
-})
+const {
+  accounts,
+  billsDue,
+  recentTransactions,
+  formattedBalance,
+  overdueBills,
+  hasOverdue,
+  loading,
+} = useDashboard()
 </script>
 <template>
   <div
@@ -86,7 +56,15 @@ onMounted(async () => {
             class="bg-white border border-gray-200 rounded-2xl p-6 flex flex-col gap-1 md:gap-3 md:p-8 md:flex-1 hover:shadow-md transition-shadow justify-between md:justify-around text-center"
           >
             <span class="text-xs text-gray-500 uppercase tracking-wide">Total Balance</span>
-            <span class="text-2xl md:text-4xl font-bold text-gray-900">{{ formattedBalance }}</span>
+            <span
+              class="md:text-4xl font-bold text-gray-900"
+              :class="
+                Number(formattedBalance.replace(/[^0-9.-]+/g, '')) >= 1000000
+                  ? 'text-lg'
+                  : 'text-2xl'
+              "
+              >{{ formattedBalance }}</span
+            >
             <span class="text-xs md:text-sm text-gray-400"
               >across {{ accounts.length }} accounts</span
             >

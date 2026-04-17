@@ -1,116 +1,8 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
-import api from '@/api/index'
 import Skeleton from '@/components/Skeleton.vue'
+import { useBill } from '@/composables/useBill'
 
-type BillStatus = 'PAID' | 'UNPAID' | 'OVERDUE'
-type FilterTab = 'ALL' | BillStatus
-
-interface Bill {
-  id: string
-  name: string
-  amount: number
-  dueDate: string
-  status: BillStatus
-}
-
-interface BillForm {
-  name: string
-  amount: string
-  dueDate: string
-}
-
-const bills = ref<Bill[]>([])
-const activeFilter = ref<FilterTab>('ALL')
-const showModal = ref(false)
-const editingBill = ref<Bill | null>(null)
-const form = ref<BillForm>({ name: '', amount: '', dueDate: '' })
-const loading = ref(true)
-
-const TABS: FilterTab[] = ['ALL', 'UNPAID', 'OVERDUE', 'PAID']
-
-const tabLabel = (tab: FilterTab) =>
-  tab === 'ALL' ? 'All' : tab.charAt(0) + tab.slice(1).toLowerCase()
-
-const filteredBills = computed(() => {
-  const list =
-    activeFilter.value === 'ALL'
-      ? bills.value
-      : bills.value.filter((b) => b.status === activeFilter.value)
-  return [...list].sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())
-})
-
-const statusBadge = (status: BillStatus) =>
-  ({
-    PAID: 'bg-green-100 text-green-700',
-    UNPAID: 'bg-yellow-100 text-yellow-700',
-    OVERDUE: 'bg-red-100 text-red-600',
-  })[status]
-
-const rowBg = (status: BillStatus) =>
-  ({
-    PAID: 'bg-green-50 border-green-200',
-    UNPAID: 'bg-white border-gray-200',
-    OVERDUE: 'bg-red-50 border-red-200',
-  })[status]
-
-async function fetchBills() {
-  try {
-    bills.value = await api('/bills').then((r) => r.json())
-  } catch (e) {
-    console.error('Failed to fetch bills', e)
-  } finally {
-    loading.value = false
-  }
-}
-
-async function updateStatus(bill: Bill) {
-  const updated: Bill = await api(`/bills/${bill.id}`, { method: 'PATCH' }).then((r) => r.json())
-  const idx = bills.value.findIndex((b) => b.id === bill.id)
-  if (idx !== -1) bills.value[idx] = updated
-}
-
-async function deleteBill(id: string) {
-  if (!window.confirm('Delete this bill?')) return
-  await api(`/bills/${id}`, { method: 'DELETE' })
-  await fetchBills()
-}
-
-function openAdd() {
-  editingBill.value = null
-  form.value = { name: '', amount: '', dueDate: '' }
-  showModal.value = true
-}
-
-function openEdit(bill: Bill) {
-  editingBill.value = bill
-  form.value = { name: bill.name, amount: String(bill.amount), dueDate: bill.dueDate }
-  showModal.value = true
-}
-
-async function submitForm() {
-  const payload = {
-    name: form.value.name,
-    amount: parseFloat(form.value.amount),
-    dueDate: form.value.dueDate,
-    status: editingBill.value ? editingBill.value.status : 'UNPAID',
-  }
-  if (editingBill.value) {
-    await api(`/bills/${editingBill.value.id}`, {
-      method: 'PUT',
-      body: JSON.stringify(payload),
-    })
-  } else {
-    await api('/bills', {
-      method: 'POST',
-      body: JSON.stringify(payload),
-    })
-  }
-  showModal.value = false
-  await fetchBills()
-}
-
-onMounted(fetchBills)
+const { activeFilter, showModal, editingBill, form, loading, TABS, tabLabel, filteredBills, statusBadge, rowBg, updateStatus, deleteBill, openAdd, openEdit, submitForm, amountInput, amountError, handleAmountInput, handleAmountKeydown, handleAmountPaste } = useBill()
 </script>
 
 <template>
@@ -160,7 +52,7 @@ onMounted(fetchBills)
             <span class="font-medium text-gray-900 truncate">{{ bill.name }}</span>
             <span
               @click="updateStatus(bill)"
-              class="text-xs px-2 py-0.5 rounded-full font-medium shrink-0 cursor-pointer select-none"
+              class="text-xs px-2 py-0.5 rounded-full font-medium shrink-0 cursor-pointer select-none min-w-16 text-center"
               :class="statusBadge(bill.status)"
               :title="bill.status === 'PAID' ? 'Click to mark unpaid' : 'Click to mark paid'"
             >
@@ -264,14 +156,10 @@ onMounted(fetchBills)
             </div>
             <div>
               <label class="text-xs text-gray-500 uppercase tracking-wide mb-1 block">Amount</label>
-              <input
-                v-model="form.amount"
-                type="number"
-                step="0.01"
-                min="0"
-                placeholder="0.00"
-                class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
-              />
+              <input :value="amountInput" @input="handleAmountInput" @keydown="handleAmountKeydown"
+                @paste="handleAmountPaste" inputmode="decimal" placeholder="0.00" maxlength="10"
+                class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900" />
+              <p v-if="amountError" class="mt-1 text-xs text-red-500">{{ amountError }}</p>
             </div>
             <div>
               <label class="text-xs text-gray-500 uppercase tracking-wide mb-1 block"
