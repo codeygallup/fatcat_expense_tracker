@@ -2,7 +2,7 @@
 import Skeleton from '@/components/Skeleton.vue'
 import { useBill } from '@/composables/useBill'
 
-const { activeFilter, showModal, editingBill, form, loading, TABS, tabLabel, filteredBills, statusBadge, rowBg, updateStatus, deleteBill, openAdd, openEdit, submitForm } = useBill()
+const { activeFilter, showModal, editingBill, form, loading, TABS, tabLabel, filteredBills, statusBadge, rowBg, updateStatus, deleteBill, openAdd, openEdit, submitForm, amountInput, amountError, handleAmountInput, handleAmountKeydown, handleAmountPaste } = useBill()
 </script>
 
 <template>
@@ -156,14 +156,10 @@ const { activeFilter, showModal, editingBill, form, loading, TABS, tabLabel, fil
             </div>
             <div>
               <label class="text-xs text-gray-500 uppercase tracking-wide mb-1 block">Amount</label>
-              <input
-                v-model="form.amount"
-                type="number"
-                step="0.01"
-                min="0"
-                placeholder="0.00"
-                class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
-              />
+              <input :value="amountInput" @input="handleAmountInput" @keydown="handleAmountKeydown"
+                @paste="handleAmountPaste" inputmode="decimal" placeholder="0.00"
+                class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900" />
+              <p v-if="amountError" class="mt-1 text-xs text-red-500">{{ amountError }}</p>
             </div>
             <div>
               <label class="text-xs text-gray-500 uppercase tracking-wide mb-1 block"

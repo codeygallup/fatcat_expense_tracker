@@ -46,7 +46,6 @@ export interface Bill {
 
 export interface BillForm {
   name: string
-  amount: string
   dueDate: string
 }
 

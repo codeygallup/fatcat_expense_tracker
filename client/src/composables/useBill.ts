@@ -2,14 +2,24 @@ import api from '@/api'
 import type { FilterTab, Bill, BillForm, BillStatus } from '@/types'
 import { useToast } from './useToast'
 import { computed, onMounted, ref } from 'vue'
+import { useAmountInput } from './useAmountInput'
 
 export function useBill() {
+  const {
+    amountInput,
+    amountError,
+    parsedAmount,
+    handleAmountInput,
+    handleAmountKeydown,
+    handleAmountPaste,
+  } = useAmountInput()
+
   const { addToast, confirm } = useToast()
   const bills = ref<Bill[]>([])
   const activeFilter = ref<FilterTab>('ALL')
   const showModal = ref(false)
   const editingBill = ref<Bill | null>(null)
-  const form = ref<BillForm>({ name: '', amount: '', dueDate: '' })
+  const form = ref<BillForm>({ name: '', dueDate: '' })
   const loading = ref(false)
   const TABS: FilterTab[] = ['ALL', 'PAID', 'UNPAID', 'OVERDUE']
 
@@ -68,7 +78,8 @@ export function useBill() {
 
   const openAdd = () => {
     editingBill.value = null
-    form.value = { name: '', amount: '', dueDate: '' }
+    form.value = { name: '', dueDate: '' }
+    amountInput.value = ''
     showModal.value = true
   }
 
@@ -76,9 +87,9 @@ export function useBill() {
     editingBill.value = bill
     form.value = {
       name: bill.name,
-      amount: bill.amount.toString(),
       dueDate: bill.dueDate.slice(0, 10),
     }
+    amountInput.value = bill.amount.toString()
     showModal.value = true
   }
 
@@ -87,12 +98,12 @@ export function useBill() {
       if (editingBill.value) {
         await api(`/bills/${editingBill.value.id}`, {
           method: 'PUT',
-          body: JSON.stringify({ ...form.value, amount: parseFloat(form.value.amount) }),
+          body: JSON.stringify({ ...form.value, amount: parsedAmount.value }),
         })
       } else {
         await api('/bills', {
           method: 'POST',
-          body: JSON.stringify({ ...form.value, amount: parseFloat(form.value.amount) }),
+          body: JSON.stringify({ ...form.value, amount: parsedAmount.value }),
         })
       }
     } catch (e) {
@@ -105,5 +116,28 @@ export function useBill() {
 
   onMounted(fetchBills)
 
-  return { bills, activeFilter, showModal, editingBill, form, loading, TABS, tabLabel, filteredBills, statusBadge, rowBg, updateStatus, deleteBill, openAdd, openEdit, submitForm}
+  return {
+    bills,
+    activeFilter,
+    showModal,
+    editingBill,
+    form,
+    loading,
+    TABS,
+    tabLabel,
+    filteredBills,
+    statusBadge,
+    rowBg,
+    updateStatus,
+    deleteBill,
+    openAdd,
+    openEdit,
+    submitForm,
+    amountInput,
+    amountError,
+    parsedAmount,
+    handleAmountInput,
+    handleAmountKeydown,
+    handleAmountPaste,
+  }
 }
