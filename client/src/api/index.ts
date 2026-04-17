@@ -11,8 +11,12 @@ export const api = async (path: string, options?: RequestInit & { raw?: boolean 
   })
 
   if (options?.raw) return res
-  
+
   if (!res.ok) {
+    if (res.status === 401) {
+      localStorage.removeItem('token')
+      window.location.href = '/login'
+    }
     const body = await res.json().catch(() => null)
     throw new Error(body?.message ?? `API error: ${res.status} ${res.statusText}`)
   }
