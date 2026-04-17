@@ -79,7 +79,7 @@ public class TransactionService {
     newTransaction.setAccount(account);
 
     BigDecimal currentBalance = account.getBalance();
-    BigDecimal newBalance = applyTransaction(currentBalance, transaction.getAmount(), transaction.getTransactionType(), account);
+    BigDecimal newBalance = applyTransaction(currentBalance, transaction.getAmount(), transaction.getTransactionType());
 
     account.setBalance(newBalance);
     accountRepository.save(account);
@@ -111,10 +111,10 @@ public Transaction updateTransaction(UUID id, TransactionDTO transactionDTO) {
     // Reverse the old transaction's effect
     BigDecimal currentBalance = account.getBalance();
     BigDecimal balanceAfterReversal = reverseTransaction(currentBalance,
-            existingTransaction.getAmount(), existingTransaction.getTransactionType(), account);
+            existingTransaction.getAmount(), existingTransaction.getTransactionType());
     // Then apply the new transaction
     BigDecimal newBalance = applyTransaction(balanceAfterReversal,
-            transactionDTO.getAmount(), transactionDTO.getTransactionType(), account);
+            transactionDTO.getAmount(), transactionDTO.getTransactionType());
 
     account.setBalance(newBalance);
     return account;
@@ -127,7 +127,7 @@ public boolean deleteTransaction(UUID id) {
 
     // Reverse the transaction's effect on balance
     BigDecimal currentBalance = account.getBalance();
-    BigDecimal newBalance = reverseTransaction(currentBalance, transaction.getAmount(), transaction.getTransactionType(), account);
+    BigDecimal newBalance = reverseTransaction(currentBalance, transaction.getAmount(), transaction.getTransactionType());
 
     account.setBalance(newBalance);
     accountRepository.save(account);
@@ -136,29 +136,17 @@ public boolean deleteTransaction(UUID id) {
     return true;
 }
 
-  private static BigDecimal applyTransaction(BigDecimal currentBalance, BigDecimal amount,
-                                             TransactionType transactionType, Account account) {
-    if (account.getAccountType().isLiabilityAccount()) {
-      return transactionType.addToBalance()
-              ? currentBalance.subtract(amount)
-              : currentBalance.add(amount);
-    } else {
-      return transactionType.addToBalance()
-              ? currentBalance.add(amount)
-              : currentBalance.subtract(amount);
+    private static BigDecimal applyTransaction(BigDecimal currentBalance, BigDecimal amount,
+                                               TransactionType transactionType) {
+        return transactionType.addToBalance()
+                ? currentBalance.add(amount)
+                : currentBalance.subtract(amount);
     }
-  }
 
-  private static BigDecimal reverseTransaction(BigDecimal currentBalance, BigDecimal amount,
-                                               TransactionType transactionType, Account account) {
-    if (account.getAccountType().isLiabilityAccount()) {
-      return transactionType.addToBalance()
-              ? currentBalance.add(amount)
-              : currentBalance.subtract(amount);
-    } else {
-      return transactionType.addToBalance()
-              ? currentBalance.subtract(amount)
-              : currentBalance.add(amount);
+    private static BigDecimal reverseTransaction(BigDecimal currentBalance, BigDecimal amount,
+                                                 TransactionType transactionType) {
+        return transactionType.addToBalance()
+                ? currentBalance.subtract(amount)
+                : currentBalance.add(amount);
     }
-  }
 }
