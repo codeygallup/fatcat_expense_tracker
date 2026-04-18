@@ -5,11 +5,11 @@ TRUNCATE TABLE accounts;
 TRUNCATE TABLE users;
 SET FOREIGN_KEY_CHECKS = 1;
 
--- User (password is "password123" BCrypt encoded)
+-- User (password is "Demo1234!" BCrypt encoded)
 INSERT INTO users (id, created_at, updated_at, email, password, role) VALUES
     (UNHEX(REPLACE('a1b2c3d4-0000-0000-0000-000000000001', '-', '')), NOW(), NOW(),
-      'codey@fatcat.com',
-     '$2a$10$rDwAw4naUSG3bdIKnwkHCu/siv2U3JXChkhR02UEcCwBUGNUrytPC',
+      'demo@fatcat.com',
+     '$2a$12$Z.giADRHICw2YuI1hTnj8OyWtFFiyOJhXlxYenOvhTdUOGyBgkP3y',
      'ADMIN');
 
 -- Accounts
