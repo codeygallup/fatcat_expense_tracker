@@ -8,6 +8,7 @@ const isLoggedIn = ref(!!localStorage.getItem('token'))
 export function useAuth(props = { isRegister: false }) {
   const router = useRouter()
   const { addToast } = useToast()
+  const loading = ref(false)
   const email = ref('')
   const password = ref('')
   const confirmPassword = ref('')
@@ -49,6 +50,7 @@ export function useAuth(props = { isRegister: false }) {
       addToast('Please fix the password requirements before submitting.', 'error')
       return
     }
+    loading.value = true
 
     try {
       const res = await api(props.isRegister ? '/users/register' : '/users/login', {
@@ -67,6 +69,8 @@ export function useAuth(props = { isRegister: false }) {
       router.push('/dashboard')
     } catch (err) {
       addToast('Failed to connect to server. Please try again.', 'error')
+    } finally {
+      loading.value = false
     }
   }
 
@@ -84,6 +88,7 @@ export function useAuth(props = { isRegister: false }) {
   return {
     isLoggedIn,
     logout,
+    loading,
     email,
     password,
     confirmPassword,

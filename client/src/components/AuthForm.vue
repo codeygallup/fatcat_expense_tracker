@@ -3,7 +3,7 @@ import { useAuth } from '@/composables/useAuth'
 
 const props = defineProps<{ isRegister?: boolean }>()
 
-const { email, password, confirmPassword, passwordRules, passwordValid, passwordsMatch, handleSubmit, showStrongPassword } = useAuth(props)
+const { loading, email, password, confirmPassword, passwordRules, passwordValid, passwordsMatch, handleSubmit, showStrongPassword } = useAuth(props)
 </script>
 
 <template>
@@ -55,14 +55,20 @@ const { email, password, confirmPassword, passwordRules, passwordValid, password
         </div>
       </div>
       <div class="flex flex-col gap-3 mt-2">
-        <!-- <p v-if="error" class="text-sm text-red-500">{{ error }}</p> -->
         <button type="submit" :disabled="props.isRegister && (!passwordValid || !passwordsMatch)" :class="[
           'w-full font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline',
           props.isRegister && (!passwordValid || !passwordsMatch)
             ? 'bg-blue-300 text-white cursor-not-allowed'
             : 'bg-blue-500 hover:bg-blue-700 text-white'
         ]">
-          {{ isRegister ? 'Register' : 'Login' }}
+          <span v-if="loading">
+            <svg class="animate-spin h-4 w-4 inline mr-1" viewBox="0 0 24 24" fill="none">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+            </svg>
+            Loading...
+          </span>
+          <span v-else>{{ isRegister ? 'Register' : 'Login' }}</span>
         </button>
       </div>
 
