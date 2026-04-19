@@ -1,5 +1,6 @@
 package com.codey.fatcat.controller;
 
+import com.codey.fatcat.dto.RegisterRecord;
 import com.codey.fatcat.dto.UserDTO;
 import com.codey.fatcat.entity.User;
 import com.codey.fatcat.enums.Role;
@@ -45,9 +46,10 @@ public class UserController {
   }
 
   @PostMapping("/register")
-  public ResponseEntity<String> registerUser(@Valid @RequestBody User user) {
+  public ResponseEntity<String> registerUser(@Valid @RequestBody RegisterRecord user) {
     userService.registerUser(user);
-    return ResponseEntity.ok("User registered successfully");
+    String token = jwtService.generateToken(customUserDetailsService.loadUserByUsername(user.email()));
+    return ResponseEntity.ok(token);
   }
 
   @PostMapping("/login")
@@ -66,10 +68,7 @@ public class UserController {
   @GetMapping
   public ResponseEntity<List<UserDTO>> getAllUsers() {
     List<User> users = userService.getAllUsers();
-    List<UserDTO> userDTOs = users.stream()
-        .map(DTOConverter::convertToDTO)
-        .toList();
-    return ResponseEntity.ok(userDTOs);
+    return ResponseEntity.ok(DTOConverter.toList(users, DTOConverter::convertToDTO));
   }
 
   @GetMapping("/{id}")
@@ -79,7 +78,7 @@ public class UserController {
   }
 
   @PutMapping("/{id}")
-  public ResponseEntity<UserDTO> updateUser(@PathVariable UUID id, @Valid @RequestBody User user) {
+  public ResponseEntity<UserDTO> updateUser(@PathVariable UUID id, @Valid @RequestBody RegisterRecord user) {
     User updatedUser = userService.updateUser(id, user);
     return ResponseEntity.accepted().body(DTOConverter.convertToDTO(updatedUser));
   }

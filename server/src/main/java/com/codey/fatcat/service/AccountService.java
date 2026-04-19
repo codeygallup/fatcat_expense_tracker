@@ -26,12 +26,10 @@ public class AccountService {
   }
 
   public List<Account> getAllAccounts() {
-    String currentUserEmail = SecurityUtils.getCurrentUserEmail();
     if (SecurityUtils.hasRole("ADMIN")) {
       return accountRepository.findAll();
     }
-    User currentUser =
-        userRepository.findByEmail(currentUserEmail).orElseThrow(() -> new UnauthorizedException("User not found"));
+    User currentUser = SecurityUtils.getCurrentUser(userRepository);
     return accountRepository.findAllByUserId(currentUser.getId());
   }
 
@@ -42,13 +40,12 @@ public class AccountService {
   }
 
   public Account createAccount(AccountDTO account) {
-    SecurityUtils.validateUserAccess(account.getUserId(), userRepository);
-    User user = userRepository.findById(account.getUserId())
-        .orElseThrow(() -> new ResourceNotFoundException("User with id: " + account.getUserId() + " not found"));
+    User user = SecurityUtils.getCurrentUser(userRepository);
     Account newAccount = new Account();
     newAccount.setAccountType(account.getAccountType());
     newAccount.setBalance(account.getBalance());
     newAccount.setUser(user);
+    newAccount.setName(account.getName());
     return accountRepository.save(newAccount);
   }
 
@@ -57,6 +54,7 @@ public class AccountService {
     Account oldAccount = getAccountById(id);
     oldAccount.setAccountType(account.getAccountType());
     oldAccount.setBalance(account.getBalance());
+    oldAccount.setName(account.getName());
     return accountRepository.save(oldAccount);
   }
 
