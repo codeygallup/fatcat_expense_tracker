@@ -48,6 +48,7 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowCredentials(true);
         configuration.addAllowedOrigin("http://localhost:5173");
+        configuration.addAllowedOrigin("https://fatcat-expense-tracker.vercel.app");
         configuration.addAllowedHeader("*");
         configuration.addAllowedMethod("*");
 
