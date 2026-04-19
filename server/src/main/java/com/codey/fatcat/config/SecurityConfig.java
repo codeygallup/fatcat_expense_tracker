@@ -48,7 +48,7 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowCredentials(true);
         configuration.addAllowedOrigin("http://localhost:5173");
-        configuration.addAllowedOrigin("https://fatcat-expense-tracker.vercel.app");
+        configuration.addAllowedOriginPattern("https://fatcat-expense-tracker*");
         configuration.addAllowedHeader("*");
         configuration.addAllowedMethod("*");
 
@@ -71,6 +71,7 @@ public class SecurityConfig {
                         // Public endpoints
                         .requestMatchers(HttpMethod.POST, "/users/register").permitAll()
                         .requestMatchers(HttpMethod.POST, "/users/login").permitAll()
+                        .requestMatchers("/actuator/health").permitAll()
                         // Admin only endpoints
                         .requestMatchers(HttpMethod.PATCH, "/users/*/role").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/users").hasRole("ADMIN")
@@ -79,6 +80,7 @@ public class SecurityConfig {
                         .requestMatchers("/transactions/**").authenticated()
                         // Default to authenticated
                         .anyRequest().authenticated()
+
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .logout(logout -> logout
