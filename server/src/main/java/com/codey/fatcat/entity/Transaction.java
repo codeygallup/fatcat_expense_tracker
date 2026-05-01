@@ -30,20 +30,22 @@ import java.time.LocalDate;
 @Table(name = "transactions")
 public class Transaction extends BaseEntity {
 
+  @ToString.Exclude
   @ManyToOne
   @JsonBackReference
   @JoinColumn(name = "account_id", nullable = false)
   private Account account;
 
+  @NotNull
   @Column(nullable = false)
   private LocalDate date;
 
-  @Column(nullable = false)
   @NotNull
+  @Column(nullable = false)
   private BigDecimal amount;
 
-  @Column(nullable = false)
   @NotBlank
+  @Column(nullable = false)
   private String merchant;
 
   @Enumerated(EnumType.STRING)
@@ -52,6 +54,7 @@ public class Transaction extends BaseEntity {
   @Column(nullable = false, name = "is_reimbursable")
   private boolean isReimbursable;
 
+  @NotNull
   @Enumerated(EnumType.STRING)
   @Column(nullable = false, name = "transaction_type")
   private TransactionType transactionType;
