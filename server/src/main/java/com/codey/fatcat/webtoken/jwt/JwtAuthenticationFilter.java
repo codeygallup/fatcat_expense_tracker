@@ -1,6 +1,7 @@
 package com.codey.fatcat.webtoken.jwt;
 
 import com.codey.fatcat.service.CustomUserDetailsService;
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -17,8 +18,8 @@ import java.io.IOException;
 @Configuration
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-  private JwtService jwtService;
-  private CustomUserDetailsService customUserDetailsService;
+  private final JwtService jwtService;
+  private final CustomUserDetailsService customUserDetailsService;
 
   public JwtAuthenticationFilter(JwtService jwtService, CustomUserDetailsService customUserDetailsService) {
     this.jwtService = jwtService;
@@ -36,7 +37,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     String jwt = authHeader.substring(7);
-    String username = jwtService.extractUsername(jwt);
+    String username = null;
+
+    try {
+      username = jwtService.extractUsername(jwt);
+    } catch (JwtException e) {
+      filterChain.doFilter(request, response);
+      return;
+    }
+
     if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
       UserDetails userDetails = customUserDetailsService.loadUserByUsername(username);
       if (userDetails != null && jwtService.isTokenValid(jwt)) {
